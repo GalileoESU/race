@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Explorer Campsite Race</title>
-    <!-- Tailwind CSS for rapid tactical styling -->
+    <title>Galileo ESU - 2026 Rough Close Race</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -36,49 +36,137 @@
 </head>
 <body class="camo-bg text-white min-h-screen flex flex-col justify-between select-none">
 
-    <!-- VIEW 1: REGISTRATION SCREEN -->
-    <div id="view-registration" class="flex-1 flex flex-col justify-center items-center p-6 max-w-md mx-auto w-full">
+    <!-- VIEW 1: LANDING SCREEN -->
+    <div id="view-landing" class="flex-1 flex flex-col justify-between items-center p-6 max-w-md mx-auto w-full text-center py-12">
+        <div class="space-y-3 mt-8">
+            <span class="text-5xl">🌿</span>
+            <h2 class="text-xs font-semibold tracking-widest text-sageHighlight uppercase">Galileo ESU</h2>
+            <h1 class="text-3xl font-bold tracking-wider font-heading text-amber-300">2026 Rough Close Race</h1>
+            <p class="text-xs text-gray-300 max-w-xs mx-auto">Official tactical mobile adventure system & live briefing portal.</p>
+        </div>
+
+        <div class="w-full space-y-4 my-8">
+            <button onclick="switchView('create-scan')" class="w-full bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wider text-sm border border-sageHighlight/30">
+                Create Team
+            </button>
+            <button onclick="switchView('rejoin')" class="w-full bg-tacticalOlive hover:bg-tacticalOlive/90 text-sageHighlight font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wider text-sm border border-mossGreen">
+                Rejoin Team
+            </button>
+        </div>
+
+        <div class="text-center">
+            <button onclick="openAdminLogin()" class="text-xs text-sageHighlight/50 hover:text-white underline">Organizer Admin Portal</button>
+        </div>
+    </div>
+
+    <!-- VIEW 2: CREATE TEAM - SCAN OR 6-DIGIT CODE -->
+    <div id="view-create-scan" class="hidden flex-1 flex flex-col justify-between p-6 max-w-md mx-auto w-full">
+        <div class="flex justify-between items-center mb-2">
+            <button onclick="switchView('landing')" class="text-xs text-sageHighlight hover:text-white">← Back</button>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-sageHighlight font-heading">Team Creation</h2>
+            <span></span>
+        </div>
+
+        <div class="flex-1 flex flex-col justify-center space-y-6">
+            <div class="text-center">
+                <h3 class="text-lg font-bold font-heading">Scan Team Creation Code</h3>
+                <p class="text-xs text-gray-300 mt-1">Align the organizer's QR code within the frame below.</p>
+            </div>
+
+            <!-- Camera Viewfinder Box -->
+            <div class="relative w-full h-64 bg-black/60 border-2 border-mossGreen rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
+                <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay muted playsinline></video>
+                <div class="absolute w-48 h-48 border-2 border-amber-400/80 rounded-xl pointer-events-none flex items-center justify-center">
+                    <div class="w-full h-0.5 bg-red-500/80 animate-pulse"></div>
+                </div>
+                <div class="absolute bottom-2 bg-black/70 px-3 py-1 rounded text-[10px] text-gray-300">Camera Active</div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-mossGreen/50"></div>
+                    <span class="flex-shrink mx-4 text-xs text-sageHighlight uppercase font-semibold">Or Enter Code Manually</span>
+                    <div class="flex-grow border-t border-mossGreen/50"></div>
+                </div>
+
+                <form id="form-verify-code" class="flex gap-2">
+                    <input type="text" id="creation-code-input" required placeholder="6-digit code" maxlength="6" class="flex-1 bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-mossGreen font-mono tracking-widest text-center text-lg">
+                    <button type="submit" class="bg-mossGreen hover:bg-mossGreen/90 px-6 rounded-xl text-white font-bold shadow">Verify</button>
+                </form>
+            </div>
+        </div>
+        <div></div>
+    </div>
+
+    <!-- VIEW 3: TEAM DETAILS REGISTRATION (NAME & PIN) -->
+    <div id="view-create-details" class="hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full">
         <div class="bg-tacticalOlive/90 border border-mossGreen p-8 rounded-2xl shadow-2xl w-full backdrop-blur-md">
             <div class="text-center mb-6">
-                <span class="text-4xl">🌿</span>
-                <h1 class="text-2xl font-bold tracking-wider mt-2 font-heading">EXPLORER RACE</h1>
-                <p class="text-xs text-sageHighlight/80 mt-1">Mission Briefing & Adventure System</p>
+                <span class="text-3xl">🛡️</span>
+                <h2 class="text-xl font-bold tracking-wider mt-2 font-heading">Configure Team</h2>
+                <p class="text-xs text-sageHighlight/80 mt-1">Set your callsign and secure re-entry PIN.</p>
             </div>
             
-            <form id="form-register" class="space-y-4">
+            <form id="form-register-details" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-sageHighlight mb-1">6-Digit Code / QR Payload</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="reg-code" required placeholder="e.g. 123456" maxlength="6" class="w-full bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen font-mono tracking-widest text-center text-lg">
-                        <button type="button" onclick="simulateQRScan()" class="bg-mossGreen hover:bg-mossGreen/80 px-4 rounded-xl text-white font-semibold flex items-center justify-center text-xl" title="Scan QR">📷</button>
-                    </div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-sageHighlight mb-1">Team Name / Callsign</label>
+                    <input type="text" id="new-team-name" required placeholder="e.g. Alpha Rangers" class="w-full bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-sageHighlight mb-1">Team Name</label>
-                    <input type="text" id="reg-team" required placeholder="Enter team callsign" class="w-full bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-sageHighlight mb-1">4-Digit Security PIN</label>
+                    <input type="password" id="new-team-pin" required placeholder="••••" maxlength="4" class="w-full bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen font-mono tracking-widest text-center text-lg">
+                    <p class="text-[10px] text-sageHighlight/70 mt-1">Remember this PIN if you need to rejoin your team session.</p>
                 </div>
 
                 <button type="submit" class="w-full bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wider mt-2">
                     Start Adventure
                 </button>
             </form>
-
-            <div class="mt-6 text-center border-t border-mossGreen/40 pt-4">
-                <button onclick="openAdminLogin()" class="text-xs text-sageHighlight/60 hover:text-white underline">Organizer Admin Portal</button>
+            <div class="mt-4 text-center">
+                <button onclick="switchView('landing')" class="text-xs text-sageHighlight/60 hover:text-white underline">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- VIEW 2: CHAT INTERFACE -->
+    <!-- VIEW 4: REJOIN TEAM SCREEN -->
+    <div id="view-rejoin" class="hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full">
+        <div class="bg-tacticalOlive/90 border border-mossGreen p-8 rounded-2xl shadow-2xl w-full backdrop-blur-md">
+            <div class="text-center mb-6">
+                <span class="text-3xl">🔄</span>
+                <h2 class="text-xl font-bold tracking-wider mt-2 font-heading">Rejoin Team</h2>
+                <p class="text-xs text-sageHighlight/80 mt-1">Resume your active mission session.</p>
+            </div>
+            
+            <form id="form-rejoin-team" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-sageHighlight mb-1">Team Name</label>
+                    <input type="text" id="rejoin-team-name" required placeholder="Enter exact team name" class="w-full bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-sageHighlight mb-1">4-Digit Security PIN</label>
+                    <input type="password" id="rejoin-team-pin" required placeholder="••••" maxlength="4" class="w-full bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen font-mono tracking-widest text-center text-lg">
+                </div>
+
+                <button type="submit" class="w-full bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wider mt-2">
+                    Reconnect Session
+                </button>
+            </form>
+            <div class="mt-4 text-center">
+                <button onclick="switchView('landing')" class="text-xs text-sageHighlight/60 hover:text-white underline">← Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 5: CHAT INTERFACE -->
     <div id="view-chat" class="hidden flex-1 flex flex-col max-w-md mx-auto w-full h-screen bg-camoDark">
-        <!-- Top Sticky Header -->
         <header class="bg-tacticalOlive border-b border-mossGreen px-4 py-3 flex justify-between items-center sticky top-0 z-20 shadow-md">
             <div class="flex items-center space-x-2">
                 <span class="w-3 h-3 rounded-full bg-green-400 animate-pulse"></span>
                 <div>
-                    <h2 id="chat-team-display" class="font-bold text-sm tracking-wide">Team Alpha</h2>
-                    <p id="chat-checkpoint-index" class="text-[10px] text-sageHighlight">Checkpoint 1 of 5</p>
+                    <h2 id="chat-team-display" class="font-bold text-sm tracking-wide">Team Name</h2>
+                    <p id="chat-checkpoint-index" class="text-[10px] text-sageHighlight">Checkpoint 1</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3 bg-camoDark/60 px-3 py-1.5 rounded-full border border-mossGreen/50">
@@ -87,14 +175,9 @@
             </div>
         </header>
 
-        <!-- Message History Feed -->
-        <div id="chat-feed" class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
-            <!-- Dynamically populated chat bubbles appear here -->
-        </div>
+        <div id="chat-feed" class="flex-1 overflow-y-auto p-4 space-y-4 pb-24"></div>
 
-        <!-- Sticky Bottom Input Bar -->
         <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-tacticalOlive border-t border-mossGreen p-3 z-20 shadow-2xl">
-            <!-- Command Quick-Bar -->
             <div class="flex justify-between gap-1 mb-2">
                 <button onclick="sendQuickCommand('HINT')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">💡 HINT (-2)</button>
                 <button onclick="sendQuickCommand('LOST')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">🗺️ LOST (-2)</button>
@@ -109,12 +192,11 @@
         </div>
     </div>
 
-    <!-- VIEW 3: ADMIN LOGIN & DASHBOARD -->
+    <!-- VIEW 6: ADMIN PORTAL & DASHBOARD -->
     <div id="view-admin" class="hidden flex-1 flex flex-col bg-militaryKhaki text-gray-900 min-h-screen">
-        <!-- Admin Login Modal State -->
         <div id="admin-login-box" class="flex-1 flex justify-center items-center p-6">
             <div class="bg-white border border-gray-300 p-8 rounded-2xl shadow-xl w-full max-w-sm">
-                <h2 class="text-xl font-bold font-heading text-center mb-4 text-tacticalOlive">Admin Portal Access</h2>
+                <h2 class="text-xl font-bold font-heading text-center mb-4 text-tacticalOlive">Organizer Admin Portal</h2>
                 <form id="form-admin-auth" class="space-y-4">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Passcode</label>
@@ -123,19 +205,18 @@
                     <button type="submit" class="w-full bg-tacticalOlive hover:bg-tacticalOlive/90 text-white font-bold py-3 rounded-xl shadow uppercase tracking-wider text-sm">Unlock Dashboard</button>
                 </form>
                 <div class="mt-4 text-center">
-                    <button onclick="switchView('registration')" class="text-xs text-gray-500 hover:text-gray-800 underline">← Return to Race Login</button>
+                    <button onclick="switchView('landing')" class="text-xs text-gray-500 hover:text-gray-800 underline">← Return Home</button>
                 </div>
             </div>
         </div>
 
-        <!-- Admin Live Dashboard State -->
         <div id="admin-dashboard-box" class="hidden flex-1 p-4 md:p-8 max-w-5xl mx-auto w-full">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <div>
-                    <h1 class="text-2xl font-bold font-heading text-tacticalOlive">Race Control Dashboard</h1>
-                    <p class="text-xs text-gray-500">Live monitoring & team telemetry</p>
+                    <h1 class="text-2xl font-bold font-heading text-tacticalOlive">Galileo ESU 2026 - Race Control</h1>
+                    <p class="text-xs text-gray-500">Live multi-team telemetry & security monitoring</p>
                 </div>
-                <button onclick="switchView('registration')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow hover:bg-red-700">Logout</button>
+                <button onclick="switchView('landing')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow hover:bg-red-700">Logout</button>
             </div>
 
             <div class="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
@@ -144,9 +225,10 @@
                         <thead>
                             <tr class="bg-gray-100 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase">
                                 <th class="p-4">Team Name</th>
+                                <th class="p-4">Team PIN</th>
                                 <th class="p-4">Tokens</th>
                                 <th class="p-4">Penalties</th>
-                                <th class="p-4">Current Checkpoint</th>
+                                <th class="p-4">Checkpoint</th>
                                 <th class="p-4">Status</th>
                             </tr>
                         </thead>
@@ -159,70 +241,110 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT GAME ENGINE -->
+    <!-- JAVASCRIPT SYSTEM ENGINE -->
     <script>
-        // Route Checkpoint Database (Simulating Excel Route Sheet Structure)
-        const routeCheckpoints = [
-            {
-                title: "Old Oak Tree",
-                description: "The oldest tree in the forest watches over secret trails and ancient crossroads...",
-                directions: "Follow the gravel path North past the wooden footbridge until you see a massive split trunk.",
-                w3w: "///acorn.branch.forest",
-                hints: [
-                    "Look for the split branch near the base.",
-                    "Notice the metallic marker nailed to the northern side.",
-                    "It is hidden right under the lowest hollow opening."
-                ],
-                answer: "acorn",
-                answerMessage: "Great work team! You've unlocked the secrets of the ancient canopy. Proceed onward."
-            },
-            {
-                title: "Whispering Stream",
-                description: "Clear mountain waters rush over smooth stones where travelers once filled their canteens.",
-                directions: "Head East down the embankment following the sound of running water.",
-                w3w: "///stream.water.stone",
-                hints: [
-                    "Look beneath the mossy stone bridge.",
-                    "The code is carved into a wooden stake.",
-                    "Count four paces upstream from the boulder."
-                ],
-                answer: "trout",
-                answerMessage: "Splendid execution! The stream yields its treasure. On to the next waypoint."
-            },
-            {
-                title: "Summit Ridge Viewpoint",
-                description: "You have reached the high ground. The valley stretches out below in all its green glory.",
-                directions: "Ascend the steep switchbacks to the wooden observation deck.",
-                w3w: "///ridge.peak.view",
-                hints: [
-                    "Check behind the orientation compass plaque.",
-                    "Look at the base of the metal flagpole.",
-                    "The answer is painted in yellow letters."
-                ],
-                answer: "compass",
-                answerMessage: "Mission milestone reached! Final checkpoint ahead—stay sharp!"
-            }
-        ];
+        let routeCheckpoints = [];
+        let activeStream = null;
 
-        // Active Session State
-        let gameState = {
+        let sessionState = {
             teamName: "",
+            pin: "",
             currentCheckpoint: 0,
             tokens: 10,
-            penalties: 0, // in minutes
+            penalties: 0,
             attempts: 0,
             startTime: null,
             completed: false
         };
 
+        async function loadCheckpoints() {
+            try {
+                const response = await fetch('checkpoints.csv');
+                const csvText = await response.text();
+                routeCheckpoints = parseCSV(csvText);
+            } catch (error) {
+                routeCheckpoints = [{
+                    title: "Old Oak Tree",
+                    description: "The oldest tree in the forest watches over secret trails...",
+                    directions: "Follow the gravel path North past the wooden bridge.",
+                    w3w: "///acorn.branch.forest",
+                    hints: ["Look for the split branch near the base.", "Notice the markings.", "It is hidden underneath."],
+                    answer: "acorn",
+                    answerMessage: "Great work team! Proceed onward."
+                }];
+            }
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const result = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const row = [];
+                let insideQuote = false;
+                let entry = '';
+                for (let char of lines[i]) {
+                    if (char === '"') {
+                        insideQuote = !insideQuote;
+                    } else if (char === ',' && !insideQuote) {
+                        row.push(entry.trim());
+                        entry = '';
+                    } else {
+                        entry += char;
+                    }
+                }
+                row.push(entry.trim());
+                if (row.length >= 9) {
+                    result.push({
+                        title: row[0],
+                        description: row[1],
+                        directions: row[2],
+                        w3w: row[3],
+                        hints: [row[4], row[5], row[6]],
+                        answer: row[7],
+                        answerMessage: row[8]
+                    });
+                }
+            }
+            return result;
+        }
+
+        // Camera Management for QR Scanning View
+        async function startCamera() {
+            try {
+                activeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                document.getElementById('qr-video').srcObject = activeStream;
+            } catch (e) {
+                console.log("Camera access unavailable or denied:", e);
+            }
+        }
+
+        function stopCamera() {
+            if (activeStream) {
+                activeStream.getTracks().forEach(track => track.stop());
+                activeStream = null;
+            }
+        }
+
         // View Router
         function switchView(viewName) {
-            document.getElementById('view-registration').classList.add('hidden');
+            stopCamera();
+            document.getElementById('view-landing').classList.add('hidden');
+            document.getElementById('view-create-scan').classList.add('hidden');
+            document.getElementById('view-create-details').classList.add('hidden');
+            document.getElementById('view-rejoin').classList.add('hidden');
             document.getElementById('view-chat').classList.add('hidden');
             document.getElementById('view-admin').classList.add('hidden');
 
-            if (viewName === 'registration') {
-                document.getElementById('view-registration').classList.remove('hidden');
+            if (viewName === 'landing') {
+                document.getElementById('view-landing').classList.remove('hidden');
+            } else if (viewName === 'create-scan') {
+                document.getElementById('view-create-scan').classList.remove('hidden');
+                startCamera();
+            } else if (viewName === 'create-details') {
+                document.getElementById('view-create-details').classList.remove('hidden');
+            } else if (viewName === 'rejoin') {
+                document.getElementById('view-rejoin').classList.remove('hidden');
             } else if (viewName === 'chat') {
                 document.getElementById('view-chat').classList.remove('hidden');
                 scrollToBottom();
@@ -231,49 +353,81 @@
             }
         }
 
-        // QR Simulator
-        function simulateQRScan() {
-            document.getElementById('reg-code').value = "482910";
-            document.getElementById('reg-team').value = "Alpha Rangers";
-        }
-
-        // Handle Registration
-        document.getElementById('form-register').addEventListener('submit', (e) => {
+        // Verify Team Creation Code (Scan fallback or 6-digit input)
+        document.getElementById('form-verify-code').addEventListener('submit', (e) => {
             e.preventDefault();
-            const code = document.getElementById('reg-code').value;
-            const team = document.getElementById('reg-team').value.trim();
+            const code = document.getElementById('creation-code-input').value.trim();
+            if (code.length === 6) {
+                switchView('create-details');
+            } else {
+                alert('Please enter a valid 6-digit creation code.');
+            }
+        });
 
-            if (!team) return;
+        // Register Team Details & Save to Registry
+        document.getElementById('form-register-details').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const teamName = document.getElementById('new-team-name').value.trim();
+            const pin = document.getElementById('new-team-pin').value.trim();
 
-            gameState.teamName = team;
-            gameState.currentCheckpoint = 0;
-            gameState.tokens = 10;
-            gameState.penalties = 0;
-            gameState.attempts = 0;
-            gameState.startTime = new Date().toLocaleTimeString();
-            gameState.completed = false;
+            if (!teamName || pin.length !== 4) {
+                alert('Please provide a team name and a 4-digit PIN.');
+                return;
+            }
 
-            saveState();
+            if (routeCheckpoints.length === 0) await loadCheckpoints();
+
+            sessionState = {
+                teamName: teamName,
+                pin: pin,
+                currentCheckpoint: 0,
+                tokens: 10,
+                penalties: 0,
+                attempts: 0,
+                startTime: new Date().toLocaleTimeString(),
+                completed: false
+            };
+
+            saveTeamRegistry(sessionState);
+            saveActiveSession();
             switchView('chat');
             initChatSession();
         });
 
-        // Initialize Chat
+        // Rejoin Team Session
+        document.getElementById('form-rejoin-team').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const teamName = document.getElementById('rejoin-team-name').value.trim();
+            const pin = document.getElementById('rejoin-team-pin').value.trim();
+
+            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
+            let found = teams.find(t => t.teamName.toLowerCase() === teamName.toLowerCase() && t.pin === pin);
+
+            if (found) {
+                if (routeCheckpoints.length === 0) await loadCheckpoints();
+                sessionState = found;
+                saveActiveSession();
+                switchView('chat');
+                initChatSession();
+            } else {
+                alert('Team not found or incorrect 4-digit PIN. Please check your credentials.');
+            }
+        });
+
         function initChatSession() {
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
-            
-            appendGuideMessage(`Hello team! I'm your expedition leader. Welcome to the Explorer Campsite Race. Let's brief you on your first objective.`);
-            presentCheckpoint(0);
+            appendGuideMessage(`Welcome back, ${sessionState.teamName}! Galileo ESU mission leader online. Let's brief you on your objective.`);
+            presentCheckpoint(sessionState.currentCheckpoint);
             updateHUD();
         }
 
-        // Present Checkpoint
         function presentCheckpoint(index) {
             if (index >= routeCheckpoints.length) {
                 appendGuideMessage(`🏆 ROUTE COMPLETE! Amazing work team. You successfully navigated all checkpoints!`);
-                gameState.completed = true;
-                saveState();
+                sessionState.completed = true;
+                saveActiveSession();
+                updateTeamRegistry(sessionState);
                 return;
             }
 
@@ -292,7 +446,6 @@
             appendCustomHTML(cpHTML);
         }
 
-        // Chat Message Append Helpers
         function appendGuideMessage(text) {
             const feed = document.getElementById('chat-feed');
             const div = document.createElement('div');
@@ -334,27 +487,25 @@
         }
 
         function updateHUD() {
-            document.getElementById('chat-team-display').innerText = gameState.teamName;
-            document.getElementById('token-count').innerText = gameState.tokens;
-            document.getElementById('penalty-count').innerText = `${gameState.penalties}m`;
-            saveState();
+            document.getElementById('chat-team-display').innerText = sessionState.teamName;
+            document.getElementById('token-count').innerText = sessionState.tokens;
+            document.getElementById('penalty-count').innerText = `${sessionState.penalties}m`;
+            saveActiveSession();
+            updateTeamRegistry(sessionState);
         }
 
-        // Handle Chat Input & Answers
         document.getElementById('form-chat').addEventListener('submit', (e) => {
             e.preventDefault();
             const inputField = document.getElementById('chat-input');
             const val = inputField.value.trim();
             if (!val) return;
-
             appendTeamMessage(val);
             inputField.value = '';
 
-            if (gameState.completed) {
-                appendGuideMessage("You have already completed the course! Check the admin dashboard for final times.");
+            if (sessionState.completed) {
+                appendGuideMessage("You have already completed the course!");
                 return;
             }
-
             processAnswerOrCommand(val);
         });
 
@@ -365,63 +516,62 @@
 
         function processAnswerOrCommand(text) {
             const upper = text.toUpperCase();
-            const currentCP = routeCheckpoints[gameState.currentCheckpoint];
+            const currentCP = routeCheckpoints[sessionState.currentCheckpoint];
 
             if (upper === 'HINT') {
-                if (gameState.tokens < 2) {
+                if (sessionState.tokens < 2) {
                     appendGuideMessage("⚠️ Insufficient tokens! You need at least 2 tokens for a hint.");
                     return;
                 }
-                gameState.tokens -= 2;
-                const hintIndex = Math.min(gameState.attempts, currentCP.hints.length - 1);
+                sessionState.tokens -= 2;
+                const hintIndex = Math.min(sessionState.attempts, currentCP.hints.length - 1);
                 appendGuideMessage(`💡 Hint: ${currentCP.hints[hintIndex]}`);
                 updateHUD();
                 return;
             }
 
             if (upper === 'LOST') {
-                if (gameState.tokens < 2) {
+                if (sessionState.tokens < 2) {
                     appendGuideMessage("⚠️ Insufficient tokens! You need at least 2 tokens for What3Words location.");
                     return;
                 }
-                gameState.tokens -= 2;
+                sessionState.tokens -= 2;
                 appendGuideMessage(`🗺️ W3W Location: ${currentCP.w3w}`);
                 updateHUD();
                 return;
             }
 
             if (upper === 'WORK') {
-                gameState.tokens += 3;
+                sessionState.tokens += 3;
                 appendGuideMessage("🧩 Riddle Challenge Solved! +3 Bonus Tokens added to your account.");
                 updateHUD();
                 return;
             }
 
             if (upper === 'SCORE') {
-                appendGuideMessage(`⏱️ Status Report: Current Checkpoint ${gameState.currentCheckpoint + 1} | Tokens: ${gameState.tokens} | Time Penalties: ${gameState.penalties}m`);
+                appendGuideMessage(`⏱️ Status Report: Checkpoint ${sessionState.currentCheckpoint + 1} | Tokens: ${sessionState.tokens} | Penalties: ${sessionState.penalties}m`);
                 return;
             }
 
-            // Check Answer Evaluation
             if (text.toLowerCase() === currentCP.answer.toLowerCase()) {
                 appendGuideMessage(currentCP.answerMessage);
-                gameState.currentCheckpoint++;
-                gameState.attempts = 0;
+                sessionState.currentCheckpoint++;
+                sessionState.attempts = 0;
                 updateHUD();
-                setTimeout(() => presentCheckpoint(gameState.currentCheckpoint), 1000);
+                setTimeout(() => presentCheckpoint(sessionState.currentCheckpoint), 1000);
             } else {
-                gameState.attempts++;
-                gameState.penalties += 3;
+                sessionState.attempts++;
+                sessionState.penalties += 3;
                 updateHUD();
                 
-                if (gameState.attempts >= 5) {
-                    appendGuideMessage(`⚠️ Maximum attempts (5/5) reached at this location! The correct answer was "${currentCP.answer}". Moving you to the next checkpoint.`);
-                    gameState.currentCheckpoint++;
-                    gameState.attempts = 0;
+                if (sessionState.attempts >= 5) {
+                    appendGuideMessage(`⚠️ Maximum attempts (5/5) reached! The correct answer was "${currentCP.answer}". Moving to next checkpoint.`);
+                    sessionState.currentCheckpoint++;
+                    sessionState.attempts = 0;
                     updateHUD();
-                    setTimeout(() => presentCheckpoint(gameState.currentCheckpoint), 1000);
+                    setTimeout(() => presentCheckpoint(sessionState.currentCheckpoint), 1000);
                 } else {
-                    appendGuideMessage(`You Have Entered A Incorrect Answer. You Have Used ${gameState.attempts}/5 Answer Attempts At This Location. Please Ensure You Have Checked Your Spelling Before Continuing. If You Need Help With Getting The Answer You Can Use The Command [HINT] For A Hint About What Your Looking For. There Are 3 Hints Available For Each Location. If You Believe You May Be In The Wrong Location, Use The Command [LOST] For A What3Words Location Of This Answer. Be Aware Both HINT and LOST Come With A 2 Token Cost.`);
+                    appendGuideMessage(`You Have Entered A Incorrect Answer. You Have Used ${sessionState.attempts}/5 Answer Attempts At This Location. Please Ensure You Have Checked Your Spelling Before Continuing. If You Need Help With Getting The Answer You Can Use The Command [HINT] For A Hint About What Your Looking For. There Are 3 Hints Available For Each Location. If You Believe You May Be In The Wrong Location, Use The Command [LOST] For A What3Words Location Of This Answer. Be Aware Both HINT and LOST Come With A 2 Token Cost.`);
                 }
             }
         }
@@ -448,34 +598,56 @@
         function renderAdminTable() {
             const tbody = document.getElementById('admin-teams-table');
             tbody.innerHTML = '';
+            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
 
-            // Pull active team from localStorage or state
-            const savedState = JSON.parse(localStorage.getItem('explorer_race_state')) || gameState;
+            if (teams.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">No teams registered yet.</td></tr>`;
+                return;
+            }
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="p-4 font-semibold text-gray-900">${savedState.teamName || 'No Team Registered'}</td>
-                <td class="p-4">${savedState.tokens}</td>
-                <td class="p-4 text-amber-600 font-semibold">${savedState.penalties}m</td>
-                <td class="p-4">CP ${savedState.currentCheckpoint + 1} / ${routeCheckpoints.length}</td>
-                <td class="p-4">
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${savedState.completed ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
-                        ${savedState.completed ? 'Finished' : 'In Progress'}
-                    </span>
-                </td>
-            `;
-            tbody.appendChild(tr);
+            teams.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-4 font-semibold text-gray-900">${t.teamName}</td>
+                    <td class="p-4 font-mono text-gray-600">${t.pin}</td>
+                    <td class="p-4">${t.tokens}</td>
+                    <td class="p-4 text-amber-600 font-semibold">${t.penalties}m</td>
+                    <td class="p-4">CP ${t.currentCheckpoint + 1} / ${routeCheckpoints.length || '?'}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${t.completed ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
+                            ${t.completed ? 'Finished' : 'In Progress'}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
-        function saveState() {
-            localStorage.setItem('explorer_race_state', JSON.stringify(gameState));
+        // LocalStorage Registry Handlers
+        function saveTeamRegistry(teamObj) {
+            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
+            let index = teams.findIndex(t => t.teamName.toLowerCase() === teamObj.teamName.toLowerCase());
+            if (index >= 0) {
+                teams[index] = teamObj;
+            } else {
+                teams.push(teamObj);
+            }
+            localStorage.setItem('galileo_teams_registry', JSON.stringify(teams));
         }
 
-        // Load state on startup if exists
-        window.onload = () => {
-            const stored = localStorage.getItem('explorer_race_state');
-            if (stored) {
-                gameState = JSON.parse(stored);
+        function updateTeamRegistry(teamObj) {
+            saveTeamRegistry(teamObj);
+        }
+
+        function saveActiveSession() {
+            localStorage.setItem('galileo_active_session', JSON.stringify(sessionState));
+        }
+
+        window.onload = async () => {
+            await loadCheckpoints();
+            const active = localStorage.getItem('galileo_active_session');
+            if (active) {
+                sessionState = JSON.parse(active);
             }
         };
     </script>
