@@ -38,7 +38,7 @@
 </head>
 <body class="camo-bg text-white min-h-screen flex flex-col justify-between select-none">
 
-    <!-- VIEW 1: LANDING PAGE (/race/home) -->
+    <!-- VIEW 1: LANDING PAGE -->
     <div id="view-home" class="view-screen hidden flex-1 flex flex-col justify-between items-center p-6 max-w-md mx-auto w-full text-center py-12">
         <div class="space-y-3 mt-8">
             <img src="logo.png" alt="Galileo ESU Logo" class="w-20 h-20 mx-auto object-contain drop-shadow-md">
@@ -61,7 +61,7 @@
         </div>
     </div>
 
-    <!-- VIEW 2: TEAM LOGIN / REGISTRATION MENU (/race/login) -->
+    <!-- VIEW 2: TEAM LOGIN MENU -->
     <div id="view-login" class="view-screen hidden flex-1 flex flex-col justify-center items-center p-6 max-w-md mx-auto w-full">
         <div class="bg-tacticalOlive/90 border border-mossGreen p-8 rounded-2xl shadow-2xl w-full backdrop-blur-md space-y-6">
             <div class="text-center">
@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    <!-- VIEW 3: CREATE TEAM SCAN (/race/create-scan) -->
+    <!-- VIEW 3: CREATE TEAM SCAN -->
     <div id="view-create-scan" class="view-screen hidden flex-1 flex flex-col justify-between p-6 max-w-md mx-auto w-full">
         <div class="flex justify-between items-center mb-2">
             <button onclick="navigateTo('login')" class="text-xs text-sageHighlight hover:text-white">← Back</button>
@@ -99,7 +99,6 @@
                 <p class="text-xs text-gray-300">Align QR code within frame.</p>
             </div>
 
-            <!-- Camera Viewfinder Box with Switch Camera Button -->
             <div class="relative w-full h-56 bg-black/60 border-2 border-mossGreen rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
                 <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay muted playsinline></video>
                 <div class="absolute w-40 h-40 border-2 border-amber-400/80 rounded-xl pointer-events-none flex items-center justify-center">
@@ -181,14 +180,14 @@
         </div>
     </div>
 
-    <!-- VIEW 6: TEAM CHAT DASHBOARD (/race/dashboard) -->
+    <!-- VIEW 6: TEAM CHAT DASHBOARD -->
     <div id="view-dashboard" class="view-screen hidden flex-1 flex flex-col max-w-md mx-auto w-full h-screen bg-camoDark">
         <header class="bg-tacticalOlive border-b border-mossGreen px-4 py-3 flex justify-between items-center sticky top-0 z-20 shadow-md">
             <div class="flex items-center space-x-2">
                 <span class="w-3 h-3 rounded-full bg-green-400 animate-pulse"></span>
                 <div>
                     <h2 id="chat-team-display" class="font-bold text-sm tracking-wide">Team Name</h2>
-                    <p id="chat-checkpoint-index" class="text-[10px] text-sageHighlight">Checkpoint 1</p>
+                    <p id="chat-checkpoint-index" class="text-[10px] text-sageHighlight">Briefing Phase</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2">
@@ -203,21 +202,23 @@
         <div id="chat-feed" class="flex-1 overflow-y-auto p-4 space-y-4 pb-24"></div>
 
         <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-tacticalOlive border-t border-mossGreen p-3 z-20 shadow-2xl">
-            <div class="flex justify-between gap-1 mb-2">
-                <button onclick="sendQuickCommand('HINT')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">💡 HINT (-2)</button>
-                <button onclick="sendQuickCommand('LOST')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">🗺️ LOST (-2)</button>
-                <button onclick="sendQuickCommand('WORK')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">🧩 WORK (+3)</button>
-                <button onclick="sendQuickCommand('SCORE')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">⏱️ SCORE</button>
+            <div id="chat-controls-wrapper">
+                <div class="flex justify-between gap-1 mb-2">
+                    <button onclick="sendQuickCommand('HINT')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">💡 HINT (-2)</button>
+                    <button onclick="sendQuickCommand('LOST')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">🗺️ LOST (-2)</button>
+                    <button onclick="sendQuickCommand('WORK')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">🧩 WORK (+3)</button>
+                    <button onclick="sendQuickCommand('SCORE')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">⏱️ SCORE</button>
+                </div>
+                
+                <form id="form-chat" class="flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Type answer or command..." autocomplete="off" class="flex-1 bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen">
+                    <button type="submit" class="bg-mossGreen hover:bg-mossGreen/90 px-5 rounded-xl text-white font-bold flex items-center justify-center shadow">➤</button>
+                </form>
             </div>
-            
-            <form id="form-chat" class="flex gap-2">
-                <input type="text" id="chat-input" placeholder="Type answer or command..." autocomplete="off" class="flex-1 bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen">
-                <button type="submit" class="bg-mossGreen hover:bg-mossGreen/90 px-5 rounded-xl text-white font-bold flex items-center justify-center shadow">➤</button>
-            </form>
         </div>
     </div>
 
-    <!-- VIEW 7: HOST LOGIN & DASHBOARD (/race/host & /race/hlogin) -->
+    <!-- VIEW 7: HOST PORTAL -->
     <div id="view-hlogin" class="view-screen hidden flex-1 flex flex-col justify-center items-center p-6 max-w-md mx-auto w-full">
         <div class="bg-white border border-gray-300 p-8 rounded-2xl shadow-xl w-full">
             <h2 class="text-xl font-bold font-heading text-center mb-4 text-tacticalOlive">Host Portal Access</h2>
@@ -247,7 +248,7 @@
                 </div>
             </div>
 
-            <!-- 3 QR Codes Section -->
+            <!-- QR Codes Section -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-white p-4 rounded-2xl shadow border border-gray-200 text-center flex flex-col items-center">
                     <h3 class="font-bold text-xs uppercase text-tacticalOlive mb-2">1. Website Access QR</h3>
@@ -276,8 +277,8 @@
                                 <th class="p-4">Team Name</th>
                                 <th class="p-4">Tokens</th>
                                 <th class="p-4">Penalties</th>
-                                <th class="p-4">Checkpoint</th>
-                                <th class="p-4">Status</th>
+                                <th class="p-4">Status Indicator</th>
+                                <th class="p-4">Route Assignment</th>
                                 <th class="p-4 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -285,6 +286,16 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP CONTAINER FOR HOST ROUTE ASSIGNMENT -->
+    <div id="host-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-sm w-full space-y-4 shadow-2xl">
+            <h3 id="modal-title" class="font-bold font-heading text-lg text-tacticalOlive">Route Assignment</h3>
+            <p id="modal-desc" class="text-xs text-gray-600">Select route for team.</p>
+            <div id="modal-buttons" class="space-y-2"></div>
+            <button onclick="closeHostModal()" class="w-full bg-gray-200 hover:bg-gray-300 py-2 rounded-xl text-xs font-semibold text-gray-700">Cancel</button>
         </div>
     </div>
 
@@ -297,6 +308,8 @@
         let sessionState = {
             teamName: "",
             pin: "",
+            status: "Preparing", // Setup, Preparing, Queued, Started
+            routeAssigned: null,
             currentCheckpoint: 0,
             tokens: 10,
             penalties: 0,
@@ -305,7 +318,7 @@
             completed: false
         };
 
-        const routes = {
+        const routesMap = {
             'home': 'view-home',
             'login': 'view-login',
             'create-scan': 'view-create-scan',
@@ -323,10 +336,10 @@
         async function handleRouting() {
             stopCamera();
             let hash = window.location.hash.replace('#', '') || 'home';
-            if (!routes[hash]) hash = 'home';
+            if (!routesMap[hash]) hash = 'home';
 
             document.querySelectorAll('.view-screen').forEach(el => el.classList.add('hidden'));
-            document.getElementById(routes[hash]).classList.remove('hidden');
+            document.getElementById(routesMap[hash]).classList.remove('hidden');
 
             if (hash === 'create-scan') {
                 startCamera();
@@ -424,7 +437,6 @@
             }
         });
 
-        // Register Team Details with Duplicate Check
         document.getElementById('form-register-details').addEventListener('submit', async (e) => {
             e.preventDefault();
             const teamName = document.getElementById('new-team-name').value.trim();
@@ -447,11 +459,13 @@
             sessionState = {
                 teamName: teamName,
                 pin: pin,
+                status: "Preparing",
+                routeAssigned: null,
                 currentCheckpoint: 0,
                 tokens: 10,
                 penalties: 0,
                 attempts: 0,
-                startTime: new Date().toLocaleTimeString(),
+                startTime: null,
                 completed: false
             };
 
@@ -488,10 +502,97 @@
         function initChatSession() {
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
-            appendGuideMessage(`Welcome back, ${sessionState.teamName}! Mission leader online.`);
-            presentCheckpoint(sessionState.currentCheckpoint);
+
+            // 1. Opening Briefing Message
+            appendGuideMessage(`Welcome to the rough close race 2026. Your job is to adventure around the campsite and reach your final destination. Along your route you will have to stop at checkpoints to answer questions which the answers to can be found at that location. You can only progress from a checkpoint once you solve the problem. However, dont waste time, as you are always against the clock. If you are struggling to find a answer, there are some tools you can use, however these come at the cost of tokens. Your first line of support is Hints. You can get a hint for your current checkpoint by typing HINT into the chat at anytime during the game. This takes 2tokens and will give you a hint to what you are looking for, or a cryptic clue which gives information directly on the answer. Your other line of support is our location clues. you can get locations by using the command LOST. this will give you a What3Words location of where your answer lies. This also costs 2tokens. Should you be running low on tokens, you can use the command WORK. This will give you a riddle. If you answer it correctly within 3attempts, you will receive 3points. You can do work at anytime in the game. If you have any tokens left at the end, every 3tokens remaining will remove 1minute from your time, so spend them wisely. You can use the command SCORE at anytime to see your current time and token balance. You now have all the infomation you need for todays game, to begin, ask your host for the starting QR code. Be aware, if setting off at the same time as other groups, you may be on a different route around the course to them. Good Luck, ill be back to help once youve started.`);
+
+            // 2. Ready to Start Card
+            const readyCardHTML = `
+                <div id="ready-card" class="bg-tacticalOlive border-2 border-amber-400 p-4 rounded-xl shadow-lg my-3 space-y-3 text-center">
+                    <h3 class="font-bold text-amber-300 font-heading text-base">Ready To Start</h3>
+                    <p class="text-xs text-gray-200">Scan the start QR code or enter starting code to queue for route assignment.</p>
+                    <div class="flex gap-2">
+                        <button onclick="triggerStartScan()" class="flex-1 bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow">Scan Starting QR Code</button>
+                        <button onclick="promptStartCode()" class="flex-1 bg-camoDark hover:bg-camoDark/80 border border-mossGreen text-sageHighlight font-bold py-2.5 rounded-lg text-xs uppercase shadow">Enter Starting Code</button>
+                    </div>
+                </div>
+            `;
+            appendCustomHTML(readyCardHTML);
+
+            syncStateFromStorage();
+            updateChatInputState();
             updateHUD();
         }
+
+        function triggerStartScan() {
+            // Simulated QR Scan trigger for starting race
+            handleStartQueued();
+        }
+
+        function promptStartCode() {
+            const code = prompt("Enter Starting Code:");
+            if (code && code.trim().length > 0) {
+                handleStartQueued();
+            }
+        }
+
+        function handleStartQueued() {
+            sessionState.status = "Queued";
+            saveActiveSession();
+            updateTeamRegistry(sessionState);
+
+            // Hide ready card
+            const card = document.getElementById('ready-card');
+            if (card) card.remove();
+
+            appendGuideMessage("Waiting for host confirmation and route assignment...");
+            updateChatInputState();
+        }
+
+        function syncStateFromStorage() {
+            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
+            let me = teams.find(t => t.teamName.toLowerCase() === sessionState.teamName.toLowerCase());
+            if (me) {
+                sessionState = me;
+            }
+        }
+
+        function updateChatInputState() {
+            const inputField = document.getElementById('chat-input');
+            const submitBtn = document.querySelector('#form-chat button');
+            const controlsWrapper = document.getElementById('chat-controls-wrapper');
+
+            syncStateFromStorage();
+
+            if (sessionState.status !== "Started") {
+                inputField.disabled = true;
+                inputField.placeholder = "Waiting for game start...";
+                // Hide command buttons until started
+                controlsWrapper.style.display = 'none';
+            } else {
+                inputField.disabled = false;
+                inputField.placeholder = "Type answer or command...";
+                controlsWrapper.style.display = 'block';
+            }
+        }
+
+        // Poll for status updates every 2 seconds when on dashboard
+        setInterval(() => {
+            if (window.location.hash.includes('dashboard') && sessionState.teamName) {
+                let oldStatus = sessionState.status;
+                let oldRoute = sessionState.routeAssigned;
+                syncStateFromStorage();
+
+                if (oldStatus !== sessionState.status || oldRoute !== sessionState.routeAssigned) {
+                    updateChatInputState();
+                    updateHUD();
+                    if (sessionState.status === "Started" && oldStatus !== "Started") {
+                        appendGuideMessage(`Team Name Has Been Assigned Route ${sessionState.routeAssigned}`);
+                        presentCheckpoint(sessionState.currentCheckpoint);
+                    }
+                }
+            }
+        }, 2000);
 
         function presentCheckpoint(index) {
             if (index >= routeCheckpoints.length) {
@@ -503,7 +604,7 @@
             }
 
             const cp = routeCheckpoints[index];
-            document.getElementById('chat-checkpoint-index').innerText = `Checkpoint ${index + 1} of ${routeCheckpoints.length}`;
+            document.getElementById('chat-checkpoint-index').innerText = `Checkpoint ${index + 1} of ${routeCheckpoints.length} (Route ${sessionState.routeAssigned})`;
 
             const cpHTML = `
                 <div class="bg-tacticalOlive/90 border border-mossGreen p-4 rounded-xl shadow-md my-3 space-y-2">
@@ -567,6 +668,8 @@
 
         document.getElementById('form-chat').addEventListener('submit', (e) => {
             e.preventDefault();
+            if (sessionState.status !== "Started") return;
+
             const inputField = document.getElementById('chat-input');
             const val = inputField.value.trim();
             if (!val) return;
@@ -578,6 +681,7 @@
         });
 
         function sendQuickCommand(cmd) {
+            if (sessionState.status !== "Started") return;
             appendTeamMessage(cmd);
             processAnswerOrCommand(cmd);
         }
@@ -674,22 +778,78 @@
 
             teams.forEach(t => {
                 const tr = document.createElement('tr');
+                let statusBadge = '';
+                if (t.status === 'Setup') statusBadge = '<span class="bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs font-semibold">Setup</span>';
+                else if (t.status === 'Preparing') statusBadge = '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-semibold">Preparing</span>';
+                else if (t.status === 'Queued') statusBadge = '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs font-semibold animate-pulse">Queued</span>';
+                else if (t.status === 'Started') statusBadge = '<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Started</span>';
+
+                let actionBtn = '';
+                if (t.status === 'Queued') {
+                    actionBtn = `<button onclick="openRouteModal('${t.teamName.replace(/'/g, "\\'")}')" class="bg-mossGreen text-white px-3 py-1 rounded-lg text-xs font-semibold shadow hover:bg-mossGreen/90">Assign Route</button>`;
+                }
+
                 tr.innerHTML = `
                     <td class="p-4 font-semibold text-gray-900">${t.teamName}</td>
                     <td class="p-4">${t.tokens}</td>
                     <td class="p-4 text-amber-600 font-semibold">${t.penalties}m</td>
-                    <td class="p-4">CP ${t.currentCheckpoint + 1} / ${routeCheckpoints.length || '?'}</td>
-                    <td class="p-4">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${t.completed ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
-                            ${t.completed ? 'Finished' : 'In Progress'}
-                        </span>
-                    </td>
-                    <td class="p-4 text-right">
+                    <td class="p-4">${statusBadge}</td>
+                    <td class="p-4 font-mono font-bold text-tacticalOlive">${t.routeAssigned ? 'Route ' + t.routeAssigned : 'Unassigned'}</td>
+                    <td class="p-4 text-right space-x-2">
+                        ${actionBtn}
                         <button onclick="deleteTeam('${t.teamName.replace(/'/g, "\\'")}')" class="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-lg text-xs font-semibold">Delete</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function openRouteModal(teamName) {
+            document.getElementById('modal-title').innerText = `${teamName} is ready to begin`;
+            document.getElementById('modal-desc').innerText = `Please select their route assignment:`;
+            
+            const btnContainer = document.getElementById('modal-buttons');
+            btnContainer.innerHTML = '';
+
+            // Example 3 routes
+            const routesList = [
+                { id: 'A', name: 'Route Alpha (North Ridge)' },
+                { id: 'B', name: 'Route Bravo (Valley Trail)' },
+                { id: 'C', name: 'Route Charlie (Woodland Loop)' }
+            ];
+
+            routesList.forEach(r => {
+                const btn = document.createElement('button');
+                btn.className = "w-full bg-tacticalOlive text-white py-3 rounded-xl font-bold text-xs uppercase shadow hover:bg-tacticalOlive/90 flex flex-col items-center justify-center";
+                btn.innerHTML = `<span>${r.name}</span>`;
+                btn.onclick = () => assignRouteToTeam(teamName, r.id);
+                btnContainer.appendChild(btn);
+            });
+
+            document.getElementById('host-modal').classList.remove('hidden');
+        }
+
+        function closeHostModal() {
+            document.getElementById('host-modal').classList.add('hidden');
+        }
+
+        function assignRouteToTeam(teamName, routeId) {
+            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
+            let t = teams.find(item => item.teamName.toLowerCase() === teamName.toLowerCase());
+            if (t) {
+                t.status = "Started";
+                t.routeAssigned = routeId;
+                t.startTime = new Date().toLocaleTimeString();
+                localStorage.setItem('galileo_teams_registry', JSON.stringify(teams));
+                
+                // If active session matches
+                if (sessionState.teamName.toLowerCase() === teamName.toLowerCase()) {
+                    sessionState = t;
+                    saveActiveSession();
+                }
+            }
+            closeHostModal();
+            renderHostDashboard();
         }
 
         function deleteTeam(teamName) {
