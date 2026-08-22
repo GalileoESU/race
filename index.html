@@ -6,6 +6,8 @@
     <title>Galileo ESU - 2026 Rough Close Race</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QR Code Generator Library for Host Screen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -36,8 +38,8 @@
 </head>
 <body class="camo-bg text-white min-h-screen flex flex-col justify-between select-none">
 
-    <!-- VIEW 1: LANDING SCREEN -->
-    <div id="view-landing" class="flex-1 flex flex-col justify-between items-center p-6 max-w-md mx-auto w-full text-center py-12">
+    <!-- VIEW 1: LANDING PAGE (/race/home) -->
+    <div id="view-home" class="view-screen hidden flex-1 flex flex-col justify-between items-center p-6 max-w-md mx-auto w-full text-center py-12">
         <div class="space-y-3 mt-8">
             <span class="text-5xl">🌿</span>
             <h2 class="text-xs font-semibold tracking-widest text-sageHighlight uppercase">Galileo ESU</h2>
@@ -46,46 +48,70 @@
         </div>
 
         <div class="w-full space-y-4 my-8">
-            <button onclick="switchView('create-scan')" class="w-full bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wider text-sm border border-sageHighlight/30">
-                Create Team
+            <button onclick="navigateTo('login')" class="w-full bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wider text-sm border border-sageHighlight/30">
+                Create / Rejoin Team
             </button>
-            <button onclick="switchView('rejoin')" class="w-full bg-tacticalOlive hover:bg-tacticalOlive/90 text-sageHighlight font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wider text-sm border border-mossGreen">
-                Rejoin Team
+            <button onclick="navigateTo('hlogin')" class="w-full bg-tacticalOlive hover:bg-tacticalOlive/90 text-sageHighlight font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wider text-sm border border-mossGreen">
+                Organizer Host Portal
             </button>
         </div>
 
         <div class="text-center">
-            <button onclick="openAdminLogin()" class="text-xs text-sageHighlight/50 hover:text-white underline">Organizer Admin Portal</button>
+            <p class="text-[10px] text-sageHighlight/40">Galileo ESU Secure Tactical Network</p>
         </div>
     </div>
 
-    <!-- VIEW 2: CREATE TEAM - SCAN OR 6-DIGIT CODE -->
-    <div id="view-create-scan" class="hidden flex-1 flex flex-col justify-between p-6 max-w-md mx-auto w-full">
+    <!-- VIEW 2: TEAM LOGIN / REGISTRATION MENU (/race/login) -->
+    <div id="view-login" class="view-screen hidden flex-1 flex flex-col justify-center items-center p-6 max-w-md mx-auto w-full">
+        <div class="bg-tacticalOlive/90 border border-mossGreen p-8 rounded-2xl shadow-2xl w-full backdrop-blur-md space-y-6">
+            <div class="text-center">
+                <span class="text-3xl">🛡️</span>
+                <h2 class="text-xl font-bold tracking-wider mt-2 font-heading">Team Gateway</h2>
+                <p class="text-xs text-sageHighlight/80 mt-1">Select your operation mode.</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button onclick="navigateTo('create-scan')" class="w-full bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-4 rounded-xl shadow uppercase tracking-wider text-sm">
+                    Create New Team
+                </button>
+                <button onclick="navigateTo('rejoin')" class="w-full bg-camoDark hover:bg-camoDark/80 border border-mossGreen text-sageHighlight font-bold py-4 rounded-xl shadow uppercase tracking-wider text-sm">
+                    Rejoin Existing Team
+                </button>
+            </div>
+
+            <div class="text-center pt-2">
+                <button onclick="navigateTo('home')" class="text-xs text-sageHighlight/60 hover:text-white underline">← Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 3: CREATE TEAM SCAN (/race/create-scan) -->
+    <div id="view-create-scan" class="view-screen hidden flex-1 flex flex-col justify-between p-6 max-w-md mx-auto w-full">
         <div class="flex justify-between items-center mb-2">
-            <button onclick="switchView('landing')" class="text-xs text-sageHighlight hover:text-white">← Back</button>
+            <button onclick="navigateTo('login')" class="text-xs text-sageHighlight hover:text-white">← Back</button>
             <h2 class="text-xs font-semibold uppercase tracking-wider text-sageHighlight font-heading">Team Creation</h2>
             <span></span>
         </div>
 
-        <div class="flex-1 flex flex-col justify-center space-y-6">
+        <div class="flex-1 flex flex-col justify-center space-y-4">
             <div class="text-center">
-                <h3 class="text-lg font-bold font-heading">Scan Team Creation Code</h3>
-                <p class="text-xs text-gray-300 mt-1">Align the organizer's QR code within the frame below.</p>
+                <h3 class="text-base font-bold font-heading">Scan Team Creation Code</h3>
+                <p class="text-xs text-gray-300">Align QR code within frame.</p>
             </div>
 
-            <!-- Camera Viewfinder Box -->
-            <div class="relative w-full h-64 bg-black/60 border-2 border-mossGreen rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
+            <!-- Camera Viewfinder Box with Switch Camera Button -->
+            <div class="relative w-full h-56 bg-black/60 border-2 border-mossGreen rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
                 <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay muted playsinline></video>
-                <div class="absolute w-48 h-48 border-2 border-amber-400/80 rounded-xl pointer-events-none flex items-center justify-center">
+                <div class="absolute w-40 h-40 border-2 border-amber-400/80 rounded-xl pointer-events-none flex items-center justify-center">
                     <div class="w-full h-0.5 bg-red-500/80 animate-pulse"></div>
                 </div>
-                <div class="absolute bottom-2 bg-black/70 px-3 py-1 rounded text-[10px] text-gray-300">Camera Active</div>
             </div>
+            <button onclick="toggleCamera()" class="bg-tacticalOlive hover:bg-tacticalOlive/80 border border-mossGreen py-2 rounded-xl text-xs text-sageHighlight font-semibold">🔄 Switch Camera Feed</button>
 
-            <div class="space-y-3">
-                <div class="relative flex py-2 items-center">
+            <div class="space-y-2">
+                <div class="relative flex py-1 items-center">
                     <div class="flex-grow border-t border-mossGreen/50"></div>
-                    <span class="flex-shrink mx-4 text-xs text-sageHighlight uppercase font-semibold">Or Enter Code Manually</span>
+                    <span class="flex-shrink mx-3 text-[11px] text-sageHighlight uppercase font-semibold">Or Enter Code Manually</span>
                     <div class="flex-grow border-t border-mossGreen/50"></div>
                 </div>
 
@@ -98,8 +124,8 @@
         <div></div>
     </div>
 
-    <!-- VIEW 3: TEAM DETAILS REGISTRATION (NAME & PIN) -->
-    <div id="view-create-details" class="hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full">
+    <!-- VIEW 4: TEAM DETAILS REGISTRATION -->
+    <div id="view-create-details" class="view-screen hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full">
         <div class="bg-tacticalOlive/90 border border-mossGreen p-8 rounded-2xl shadow-2xl w-full backdrop-blur-md">
             <div class="text-center mb-6">
                 <span class="text-3xl">🛡️</span>
@@ -116,26 +142,22 @@
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-sageHighlight mb-1">4-Digit Security PIN</label>
                     <input type="password" id="new-team-pin" required placeholder="••••" maxlength="4" class="w-full bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen font-mono tracking-widest text-center text-lg">
-                    <p class="text-[10px] text-sageHighlight/70 mt-1">Remember this PIN if you need to rejoin your team session.</p>
                 </div>
 
                 <button type="submit" class="w-full bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wider mt-2">
                     Start Adventure
                 </button>
             </form>
-            <div class="mt-4 text-center">
-                <button onclick="switchView('landing')" class="text-xs text-sageHighlight/60 hover:text-white underline">Cancel</button>
-            </div>
         </div>
     </div>
 
-    <!-- VIEW 4: REJOIN TEAM SCREEN -->
-    <div id="view-rejoin" class="hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full">
+    <!-- VIEW 5: REJOIN TEAM SCREEN -->
+    <div id="view-rejoin" class="view-screen hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full">
         <div class="bg-tacticalOlive/90 border border-mossGreen p-8 rounded-2xl shadow-2xl w-full backdrop-blur-md">
             <div class="text-center mb-6">
                 <span class="text-3xl">🔄</span>
                 <h2 class="text-xl font-bold tracking-wider mt-2 font-heading">Rejoin Team</h2>
-                <p class="text-xs text-sageHighlight/80 mt-1">Resume your active mission session.</p>
+                <p class="text-xs text-sageHighlight/80 mt-1">Resume active mission session.</p>
             </div>
             
             <form id="form-rejoin-team" class="space-y-4">
@@ -149,18 +171,18 @@
                     <input type="password" id="rejoin-team-pin" required placeholder="••••" maxlength="4" class="w-full bg-camoDark border border-mossGreen rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen font-mono tracking-widest text-center text-lg">
                 </div>
 
-                <button type="submit" class="w-full bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 uppercase tracking-wider mt-2">
+                <button type="submit" class="w-full bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-4 rounded-xl shadow-lg uppercase tracking-wider mt-2">
                     Reconnect Session
                 </button>
             </form>
             <div class="mt-4 text-center">
-                <button onclick="switchView('landing')" class="text-xs text-sageHighlight/60 hover:text-white underline">← Back to Home</button>
+                <button onclick="navigateTo('login')" class="text-xs text-sageHighlight/60 hover:text-white underline">← Back</button>
             </div>
         </div>
     </div>
 
-    <!-- VIEW 5: CHAT INTERFACE -->
-    <div id="view-chat" class="hidden flex-1 flex flex-col max-w-md mx-auto w-full h-screen bg-camoDark">
+    <!-- VIEW 6: TEAM CHAT DASHBOARD (/race/dashboard) -->
+    <div id="view-dashboard" class="view-screen hidden flex-1 flex flex-col max-w-md mx-auto w-full h-screen bg-camoDark">
         <header class="bg-tacticalOlive border-b border-mossGreen px-4 py-3 flex justify-between items-center sticky top-0 z-20 shadow-md">
             <div class="flex items-center space-x-2">
                 <span class="w-3 h-3 rounded-full bg-green-400 animate-pulse"></span>
@@ -192,49 +214,68 @@
         </div>
     </div>
 
-    <!-- VIEW 6: ADMIN PORTAL & DASHBOARD -->
-    <div id="view-admin" class="hidden flex-1 flex flex-col bg-militaryKhaki text-gray-900 min-h-screen">
-        <div id="admin-login-box" class="flex-1 flex justify-center items-center p-6">
-            <div class="bg-white border border-gray-300 p-8 rounded-2xl shadow-xl w-full max-w-sm">
-                <h2 class="text-xl font-bold font-heading text-center mb-4 text-tacticalOlive">Organizer Admin Portal</h2>
-                <form id="form-admin-auth" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Passcode</label>
-                        <input type="password" id="admin-pin" required placeholder="Enter 4-digit PIN" maxlength="4" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-center font-mono tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-tacticalOlive">
-                    </div>
-                    <button type="submit" class="w-full bg-tacticalOlive hover:bg-tacticalOlive/90 text-white font-bold py-3 rounded-xl shadow uppercase tracking-wider text-sm">Unlock Dashboard</button>
-                </form>
-                <div class="mt-4 text-center">
-                    <button onclick="switchView('landing')" class="text-xs text-gray-500 hover:text-gray-800 underline">← Return Home</button>
+    <!-- VIEW 7: HOST LOGIN & DASHBOARD (/race/host & /race/hlogin) -->
+    <div id="view-hlogin" class="view-screen hidden flex-1 flex flex-col justify-center items-center p-6 max-w-md mx-auto w-full">
+        <div class="bg-white border border-gray-300 p-8 rounded-2xl shadow-xl w-full">
+            <h2 class="text-xl font-bold font-heading text-center mb-4 text-tacticalOlive">Host Portal Access</h2>
+            <form id="form-admin-auth" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Passcode</label>
+                    <input type="password" id="admin-pin" required placeholder="Enter PIN (4070)" maxlength="4" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-center font-mono tracking-widest text-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-tacticalOlive">
                 </div>
+                <button type="submit" class="w-full bg-tacticalOlive hover:bg-tacticalOlive/90 text-white font-bold py-3 rounded-xl shadow uppercase tracking-wider text-sm">Unlock Host Dashboard</button>
+            </form>
+            <div class="mt-4 text-center">
+                <button onclick="navigateTo('home')" class="text-xs text-gray-500 hover:text-gray-800 underline">← Return Home</button>
             </div>
         </div>
+    </div>
 
-        <div id="admin-dashboard-box" class="hidden flex-1 p-4 md:p-8 max-w-5xl mx-auto w-full">
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
+    <div id="view-host" class="view-screen hidden flex-1 flex flex-col bg-militaryKhaki text-gray-900 min-h-screen p-4 md:p-8">
+        <div class="max-w-4xl mx-auto w-full space-y-6">
+            <div class="flex justify-between items-center border-b pb-4">
                 <div>
-                    <h1 class="text-2xl font-bold font-heading text-tacticalOlive">Galileo ESU 2026 - Race Control</h1>
-                    <p class="text-xs text-gray-500">Live multi-team telemetry & security monitoring</p>
+                    <h1 class="text-2xl font-bold font-heading text-tacticalOlive">Host Control Dashboard</h1>
+                    <p class="text-xs text-gray-500">Live QR Codes & Team Telemetry</p>
                 </div>
-                <button onclick="switchView('landing')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow hover:bg-red-700">Logout</button>
+                <button onclick="navigateTo('home')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow hover:bg-red-700">Logout</button>
             </div>
 
+            <!-- 3 QR Codes Section -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded-2xl shadow border border-gray-200 text-center flex flex-col items-center">
+                    <h3 class="font-bold text-xs uppercase text-tacticalOlive mb-2">1. Website Access QR</h3>
+                    <div id="qrcode-web" class="bg-white p-2 border rounded"></div>
+                    <p class="text-[10px] text-gray-500 mt-2 font-mono">galileoesu.github.io/race</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow border border-gray-200 text-center flex flex-col items-center">
+                    <h3 class="font-bold text-xs uppercase text-tacticalOlive mb-2">2. Team Creation QR</h3>
+                    <div id="qrcode-create" class="bg-white p-2 border rounded"></div>
+                    <p class="text-[10px] text-gray-500 mt-2">Fallback Code: <strong class="text-red-600 font-mono text-xs">849201</strong></p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow border border-gray-200 text-center flex flex-col items-center">
+                    <h3 class="font-bold text-xs uppercase text-tacticalOlive mb-2">3. Race Start QR</h3>
+                    <div id="qrcode-start" class="bg-white p-2 border rounded"></div>
+                    <p class="text-[10px] text-gray-500 mt-2">Fallback Code: <strong class="text-red-600 font-mono text-xs">302948</strong></p>
+                </div>
+            </div>
+
+            <!-- Live Teams Table -->
             <div class="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
+                <div class="p-4 bg-gray-50 border-b font-bold text-sm text-tacticalOlive">Registered Teams Status</div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-gray-100 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase">
                                 <th class="p-4">Team Name</th>
-                                <th class="p-4">Team PIN</th>
+                                <th class="p-4">PIN</th>
                                 <th class="p-4">Tokens</th>
                                 <th class="p-4">Penalties</th>
                                 <th class="p-4">Checkpoint</th>
                                 <th class="p-4">Status</th>
                             </tr>
                         </thead>
-                        <tbody id="admin-teams-table" class="divide-y divide-gray-100 text-sm">
-                            <!-- Populated dynamically -->
-                        </tbody>
+                        <tbody id="admin-teams-table" class="divide-y divide-gray-100 text-sm"></tbody>
                     </table>
                 </div>
             </div>
@@ -245,6 +286,7 @@
     <script>
         let routeCheckpoints = [];
         let activeStream = null;
+        let useFrontCamera = false;
 
         let sessionState = {
             teamName: "",
@@ -256,6 +298,44 @@
             startTime: null,
             completed: false
         };
+
+        // Hash Router Map
+        const routes = {
+            'home': 'view-home',
+            'login': 'view-login',
+            'create-scan': 'view-create-scan',
+            'create-details': 'view-create-details',
+            'rejoin': 'view-rejoin',
+            'dashboard': 'view-dashboard',
+            'hlogin': 'view-hlogin',
+            'host': 'view-host'
+        };
+
+        function navigateTo(route) {
+            window.location.hash = '#' + route;
+        }
+
+        async function handleRouting() {
+            stopCamera();
+            let hash = window.location.hash.replace('#', '') || 'home';
+            if (!routes[hash]) hash = 'home';
+
+            // Hide all views
+            document.querySelectorAll('.view-screen').forEach(el => el.classList.add('hidden'));
+            
+            // Show target view
+            document.getElementById(routes[hash]).classList.remove('hidden');
+
+            if (hash === 'create-scan') {
+                startCamera();
+            } else if (hash === 'host') {
+                renderHostDashboard();
+            } else if (hash === 'dashboard') {
+                initChatSession();
+            }
+        }
+
+        window.addEventListener('hashchange', handleRouting);
 
         async function loadCheckpoints() {
             try {
@@ -309,13 +389,14 @@
             return result;
         }
 
-        // Camera Management for QR Scanning View
         async function startCamera() {
+            stopCamera();
             try {
-                activeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                const constraints = { video: { facingMode: useFrontCamera ? 'user' : 'environment' } };
+                activeStream = await navigator.mediaDevices.getUserMedia(constraints);
                 document.getElementById('qr-video').srcObject = activeStream;
             } catch (e) {
-                console.log("Camera access unavailable or denied:", e);
+                console.log("Camera access unavailable:", e);
             }
         }
 
@@ -326,52 +407,30 @@
             }
         }
 
-        // View Router
-        function switchView(viewName) {
-            stopCamera();
-            document.getElementById('view-landing').classList.add('hidden');
-            document.getElementById('view-create-scan').classList.add('hidden');
-            document.getElementById('view-create-details').classList.add('hidden');
-            document.getElementById('view-rejoin').classList.add('hidden');
-            document.getElementById('view-chat').classList.add('hidden');
-            document.getElementById('view-admin').classList.add('hidden');
-
-            if (viewName === 'landing') {
-                document.getElementById('view-landing').classList.remove('hidden');
-            } else if (viewName === 'create-scan') {
-                document.getElementById('view-create-scan').classList.remove('hidden');
-                startCamera();
-            } else if (viewName === 'create-details') {
-                document.getElementById('view-create-details').classList.remove('hidden');
-            } else if (viewName === 'rejoin') {
-                document.getElementById('view-rejoin').classList.remove('hidden');
-            } else if (viewName === 'chat') {
-                document.getElementById('view-chat').classList.remove('hidden');
-                scrollToBottom();
-            } else if (viewName === 'admin') {
-                document.getElementById('view-admin').classList.remove('hidden');
-            }
+        function toggleCamera() {
+            useFrontCamera = !useFrontCamera;
+            startCamera();
         }
 
-        // Verify Team Creation Code (Scan fallback or 6-digit input)
+        // Verify Team Creation Code
         document.getElementById('form-verify-code').addEventListener('submit', (e) => {
             e.preventDefault();
             const code = document.getElementById('creation-code-input').value.trim();
             if (code.length === 6) {
-                switchView('create-details');
+                navigateTo('create-details');
             } else {
-                alert('Please enter a valid 6-digit creation code.');
+                alert('Please enter a valid 6-digit code.');
             }
         });
 
-        // Register Team Details & Save to Registry
+        // Register Team Details
         document.getElementById('form-register-details').addEventListener('submit', async (e) => {
             e.preventDefault();
             const teamName = document.getElementById('new-team-name').value.trim();
             const pin = document.getElementById('new-team-pin').value.trim();
 
             if (!teamName || pin.length !== 4) {
-                alert('Please provide a team name and a 4-digit PIN.');
+                alert('Please provide a team name and 4-digit PIN.');
                 return;
             }
 
@@ -390,11 +449,10 @@
 
             saveTeamRegistry(sessionState);
             saveActiveSession();
-            switchView('chat');
-            initChatSession();
+            navigateTo('dashboard');
         });
 
-        // Rejoin Team Session
+        // Rejoin Team
         document.getElementById('form-rejoin-team').addEventListener('submit', async (e) => {
             e.preventDefault();
             const teamName = document.getElementById('rejoin-team-name').value.trim();
@@ -407,24 +465,23 @@
                 if (routeCheckpoints.length === 0) await loadCheckpoints();
                 sessionState = found;
                 saveActiveSession();
-                switchView('chat');
-                initChatSession();
+                navigateTo('dashboard');
             } else {
-                alert('Team not found or incorrect 4-digit PIN. Please check your credentials.');
+                alert('Team not found or incorrect PIN.');
             }
         });
 
         function initChatSession() {
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
-            appendGuideMessage(`Welcome back, ${sessionState.teamName}! Galileo ESU mission leader online. Let's brief you on your objective.`);
+            appendGuideMessage(`Welcome back, ${sessionState.teamName}! Mission leader online.`);
             presentCheckpoint(sessionState.currentCheckpoint);
             updateHUD();
         }
 
         function presentCheckpoint(index) {
             if (index >= routeCheckpoints.length) {
-                appendGuideMessage(`🏆 ROUTE COMPLETE! Amazing work team. You successfully navigated all checkpoints!`);
+                appendGuideMessage(`🏆 ROUTE COMPLETE! Amazing work team!`);
                 sessionState.completed = true;
                 saveActiveSession();
                 updateTeamRegistry(sessionState);
@@ -502,10 +559,7 @@
             appendTeamMessage(val);
             inputField.value = '';
 
-            if (sessionState.completed) {
-                appendGuideMessage("You have already completed the course!");
-                return;
-            }
+            if (sessionState.completed) return;
             processAnswerOrCommand(val);
         });
 
@@ -520,7 +574,7 @@
 
             if (upper === 'HINT') {
                 if (sessionState.tokens < 2) {
-                    appendGuideMessage("⚠️ Insufficient tokens! You need at least 2 tokens for a hint.");
+                    appendGuideMessage("⚠️ Insufficient tokens!");
                     return;
                 }
                 sessionState.tokens -= 2;
@@ -532,24 +586,24 @@
 
             if (upper === 'LOST') {
                 if (sessionState.tokens < 2) {
-                    appendGuideMessage("⚠️ Insufficient tokens! You need at least 2 tokens for What3Words location.");
+                    appendGuideMessage("⚠️ Insufficient tokens!");
                     return;
                 }
                 sessionState.tokens -= 2;
-                appendGuideMessage(`🗺️ W3W Location: ${currentCP.w3w}`);
+                appendGuideMessage(`🗺️ W3W: ${currentCP.w3w}`);
                 updateHUD();
                 return;
             }
 
             if (upper === 'WORK') {
                 sessionState.tokens += 3;
-                appendGuideMessage("🧩 Riddle Challenge Solved! +3 Bonus Tokens added to your account.");
+                appendGuideMessage("🧩 Riddle Solved! +3 Bonus Tokens.");
                 updateHUD();
                 return;
             }
 
             if (upper === 'SCORE') {
-                appendGuideMessage(`⏱️ Status Report: Checkpoint ${sessionState.currentCheckpoint + 1} | Tokens: ${sessionState.tokens} | Penalties: ${sessionState.penalties}m`);
+                appendGuideMessage(`⏱️ Status: Checkpoint ${sessionState.currentCheckpoint + 1} | Tokens: ${sessionState.tokens} | Penalties: ${sessionState.penalties}m`);
                 return;
             }
 
@@ -565,7 +619,7 @@
                 updateHUD();
                 
                 if (sessionState.attempts >= 5) {
-                    appendGuideMessage(`⚠️ Maximum attempts (5/5) reached! The correct answer was "${currentCP.answer}". Moving to next checkpoint.`);
+                    appendGuideMessage(`⚠️ Max attempts reached! Answer was "${currentCP.answer}". Moving on.`);
                     sessionState.currentCheckpoint++;
                     sessionState.attempts = 0;
                     updateHUD();
@@ -576,26 +630,28 @@
             }
         }
 
-        // Admin Portal Logic
-        function openAdminLogin() {
-            switchView('admin');
-            document.getElementById('admin-login-box').classList.remove('hidden');
-            document.getElementById('admin-dashboard-box').classList.add('hidden');
-        }
-
+        // Host Portal Authentication & Rendering
         document.getElementById('form-admin-auth').addEventListener('submit', (e) => {
             e.preventDefault();
             const pin = document.getElementById('admin-pin').value;
             if (pin === '4070') {
-                document.getElementById('admin-login-box').classList.add('hidden');
-                document.getElementById('admin-dashboard-box').classList.remove('hidden');
-                renderAdminTable();
+                navigateTo('host');
             } else {
-                alert('Incorrect Admin Passcode (Try 4070)');
+                alert('Incorrect Passcode (Use 4070)');
             }
         });
 
-        function renderAdminTable() {
+        function renderHostDashboard() {
+            // Clear previous QR renderings to avoid duplicates
+            document.getElementById('qrcode-web').innerHTML = "";
+            document.getElementById('qrcode-create').innerHTML = "";
+            document.getElementById('qrcode-start').innerHTML = "";
+
+            // Generate live QR codes using qrcode.js
+            new QRCode(document.getElementById("qrcode-web"), { text: window.location.origin + window.location.pathname + "#/home", width: 120, height: 120 });
+            new QRCode(document.getElementById("qrcode-create"), { text: "CREATE-TEAM-849201", width: 120, height: 120 });
+            new QRCode(document.getElementById("qrcode-start"), { text: "START-RACE-302948", width: 120, height: 120 });
+
             const tbody = document.getElementById('admin-teams-table');
             tbody.innerHTML = '';
             let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
@@ -623,15 +679,11 @@
             });
         }
 
-        // LocalStorage Registry Handlers
         function saveTeamRegistry(teamObj) {
             let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
             let index = teams.findIndex(t => t.teamName.toLowerCase() === teamObj.teamName.toLowerCase());
-            if (index >= 0) {
-                teams[index] = teamObj;
-            } else {
-                teams.push(teamObj);
-            }
+            if (index >= 0) teams[index] = teamObj;
+            else teams.push(teamObj);
             localStorage.setItem('galileo_teams_registry', JSON.stringify(teams));
         }
 
@@ -648,6 +700,11 @@
             const active = localStorage.getItem('galileo_active_session');
             if (active) {
                 sessionState = JSON.parse(active);
+            }
+            if (!window.location.hash) {
+                navigateTo('home');
+            } else {
+                handleRouting();
             }
         };
     </script>
