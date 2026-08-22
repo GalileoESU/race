@@ -311,11 +311,15 @@
 
     <!-- JAVASCRIPT SYSTEM ENGINE -->
     <script>
-        // FIREBASE CLOUD SETUP (Using public test Firestore config - replace with your own project config if desired)
-        const firebaseConfig = {
-            apiKey: "AIzaSyD-TestKeyForGalileoESURace2026-Placeholder",
-            authDomain: "galileo-esu-race.firebaseapp.com",
-            projectId: "galileo-esu-race"
+        // FIREBASE CLOUD SETUP (Using provided production project configuration)
+        const firebaseConfig =[cite: 2] {
+            apiKey: "AIzaSyDLiTN7E_AaWJjvRKQPo8OZS9g14YI4kag",
+            authDomain: "galileorace.firebaseapp.com",
+            projectId: "galileorace",
+            storageBucket: "galileorace.firebasestorage.app",
+            messagingSenderId: "891507915591",
+            appId: "1:891507915591:web:ec40cf09d7a20d8029ea62",
+            measurementId: "G-BX7ELLGET6"
         };
         
         // Initialize Firebase with fallback to localStorage if offline/unconfigured
@@ -1085,7 +1089,7 @@
             }
         }
 
-        function saveActiveSession() {
+        async function saveActiveSession() {
             localStorage.setItem('galileo_active_session', JSON.stringify(sessionState));
         }
 
