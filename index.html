@@ -34,6 +34,13 @@
             background-size: 60px 60px;
             background-position: 0 0, 30px 30px;
         }
+        @keyframes bounce-custom {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .dot-1 { animation: bounce-custom 0.6s infinite ease-in-out; }
+        .dot-2 { animation: bounce-custom 0.6s infinite ease-in-out 0.15s; }
+        .dot-3 { animation: bounce-custom 0.6s infinite ease-in-out 0.3s; }
     </style>
 </head>
 <body class="camo-bg text-white min-h-screen flex flex-col justify-between select-none">
@@ -503,21 +510,23 @@
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
 
-            // 1. Opening Briefing Message
-            appendGuideMessage(`Welcome to the rough close race 2026. Your job is to adventure around the campsite and reach your final destination. Along your route you will have to stop at checkpoints to answer questions which the answers to can be found at that location. You can only progress from a checkpoint once you solve the problem. However, dont waste time, as you are always against the clock. If you are struggling to find a answer, there are some tools you can use, however these come at the cost of tokens. Your first line of support is Hints. You can get a hint for your current checkpoint by typing HINT into the chat at anytime during the game. This takes 2tokens and will give you a hint to what you are looking for, or a cryptic clue which gives information directly on the answer. Your other line of support is our location clues. you can get locations by using the command LOST. this will give you a What3Words location of where your answer lies. This also costs 2tokens. Should you be running low on tokens, you can use the command WORK. This will give you a riddle. If you answer it correctly within 3attempts, you will receive 3points. You can do work at anytime in the game. If you have any tokens left at the end, every 3tokens remaining will remove 1minute from your time, so spend them wisely. You can use the command SCORE at anytime to see your current time and token balance. You now have all the infomation you need for todays game, to begin, ask your host for the starting QR code. Be aware, if setting off at the same time as other groups, you may be on a different route around the course to them. Good Luck, ill be back to help once youve started.`);
+            // Concise & Polished Briefing Message
+            const conciseBriefing = `Welcome to the Rough Close Race 2026! Navigate around the campsite through your assigned checkpoints, solving location-based questions to advance.<br><br>⏱️ **Beat the Clock:** You are always racing against time.<br>💡 **Hints (Type HINT):** Costs 2 tokens for a direct clue.<br>🗺️ **Lost Support (Type LOST):** Costs 2 tokens for a What3Words location.<br>🧩 **Extra Work (Type WORK):** Solve a riddle to earn +3 tokens anytime.<br>⏱️ **Score Check (Type SCORE):** View your current token balance and penalties.<br><br>Remaining tokens at the finish line remove penalty time (3 tokens = 1 minute off). Ask your host for the starting QR code to queue up!`;
 
-            // 2. Ready to Start Card
-            const readyCardHTML = `
-                <div id="ready-card" class="bg-tacticalOlive border-2 border-amber-400 p-4 rounded-xl shadow-lg my-3 space-y-3 text-center">
-                    <h3 class="font-bold text-amber-300 font-heading text-base">Ready To Start</h3>
-                    <p class="text-xs text-gray-200">Scan the start QR code or enter starting code to queue for route assignment.</p>
-                    <div class="flex gap-2">
-                        <button onclick="triggerStartScan()" class="flex-1 bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow">Scan Starting QR Code</button>
-                        <button onclick="promptStartCode()" class="flex-1 bg-camoDark hover:bg-camoDark/80 border border-mossGreen text-sageHighlight font-bold py-2.5 rounded-lg text-xs uppercase shadow">Enter Starting Code</button>
+            appendGuideMessageWithTyping(conciseBriefing, () => {
+                // 2. Ready to Start Card appears after briefing finishes typing
+                const readyCardHTML = `
+                    <div id="ready-card" class="bg-tacticalOlive border-2 border-amber-400 p-4 rounded-xl shadow-lg my-3 space-y-3 text-center">
+                        <h3 class="font-bold text-amber-300 font-heading text-base">Ready To Start</h3>
+                        <p class="text-xs text-gray-200">Scan the start QR code or enter starting code to queue for route assignment.</p>
+                        <div class="flex gap-2">
+                            <button onclick="triggerStartScan()" class="flex-1 bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow">Scan Starting QR Code</button>
+                            <button onclick="promptStartCode()" class="flex-1 bg-camoDark hover:bg-camoDark/80 border border-mossGreen text-sageHighlight font-bold py-2.5 rounded-lg text-xs uppercase shadow">Enter Starting Code</button>
+                        </div>
                     </div>
-                </div>
-            `;
-            appendCustomHTML(readyCardHTML);
+                `;
+                appendCustomHTML(readyCardHTML);
+            });
 
             syncStateFromStorage();
             updateChatInputState();
@@ -525,7 +534,6 @@
         }
 
         function triggerStartScan() {
-            // Simulated QR Scan trigger for starting race
             handleStartQueued();
         }
 
@@ -541,11 +549,10 @@
             saveActiveSession();
             updateTeamRegistry(sessionState);
 
-            // Hide ready card
             const card = document.getElementById('ready-card');
             if (card) card.remove();
 
-            appendGuideMessage("Waiting for host confirmation and route assignment...");
+            appendGuideMessageWithTyping("Waiting for host confirmation and route assignment...");
             updateChatInputState();
         }
 
@@ -559,7 +566,6 @@
 
         function updateChatInputState() {
             const inputField = document.getElementById('chat-input');
-            const submitBtn = document.querySelector('#form-chat button');
             const controlsWrapper = document.getElementById('chat-controls-wrapper');
 
             syncStateFromStorage();
@@ -567,7 +573,6 @@
             if (sessionState.status !== "Started") {
                 inputField.disabled = true;
                 inputField.placeholder = "Waiting for game start...";
-                // Hide command buttons until started
                 controlsWrapper.style.display = 'none';
             } else {
                 inputField.disabled = false;
@@ -576,7 +581,6 @@
             }
         }
 
-        // Poll for status updates every 2 seconds when on dashboard
         setInterval(() => {
             if (window.location.hash.includes('dashboard') && sessionState.teamName) {
                 let oldStatus = sessionState.status;
@@ -587,7 +591,7 @@
                     updateChatInputState();
                     updateHUD();
                     if (sessionState.status === "Started" && oldStatus !== "Started") {
-                        appendGuideMessage(`Team Name Has Been Assigned Route ${sessionState.routeAssigned}`);
+                        appendGuideMessageWithTyping(`Team Name Has Been Assigned Route ${sessionState.routeAssigned}`);
                         presentCheckpoint(sessionState.currentCheckpoint);
                     }
                 }
@@ -596,7 +600,7 @@
 
         function presentCheckpoint(index) {
             if (index >= routeCheckpoints.length) {
-                appendGuideMessage(`🏆 ROUTE COMPLETE! Amazing work team!`);
+                appendGuideMessageWithTyping(`🏆 ROUTE COMPLETE! Amazing work team!`);
                 sessionState.completed = true;
                 saveActiveSession();
                 updateTeamRegistry(sessionState);
@@ -618,18 +622,38 @@
             appendCustomHTML(cpHTML);
         }
 
-        function appendGuideMessage(text) {
+        function appendGuideMessageWithTyping(text, onComplete = null) {
             const feed = document.getElementById('chat-feed');
+            const containerId = 'typing-' + Date.now();
+            
             const div = document.createElement('div');
             div.className = "flex items-start space-x-2 my-2";
             div.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-mossGreen flex items-center justify-center text-xs font-bold shrink-0 shadow">🧭</div>
-                <div class="bg-tacticalOlive border border-mossGreen/50 p-3 rounded-2xl rounded-tl-sm text-xs text-white max-w-[80%] shadow">
-                    ${text}
+                <div class="w-8 h-8 rounded-full overflow-hidden border border-mossGreen shrink-0 shadow bg-tacticalOlive">
+                    <img src="https://th.bing.com/th/id/OIP.PYs6HZXYcjaQmfRH_QWLmQHaHa?w=202&h=202&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" alt="Guide Kestrel" class="w-full h-full object-cover">
+                </div>
+                <div class="flex flex-col space-y-1">
+                    <span class="text-[10px] text-sageHighlight font-semibold ml-1">Guide Kestrel</span>
+                    <div id="${containerId}" class="bg-tacticalOlive border border-mossGreen/50 p-3 rounded-2xl rounded-tl-sm text-xs text-white max-w-[80%] shadow flex items-center space-x-1.5 h-8">
+                        <div class="w-2 h-2 bg-sageHighlight rounded-full dot-1"></div>
+                        <div class="w-2 h-2 bg-sageHighlight rounded-full dot-2"></div>
+                        <div class="w-2 h-2 bg-sageHighlight rounded-full dot-3"></div>
+                    </div>
                 </div>
             `;
             feed.appendChild(div);
             scrollToBottom();
+
+            // Simulate typing duration then reveal text
+            setTimeout(() => {
+                const bubble = document.getElementById(containerId);
+                if (bubble) {
+                    bubble.classList.remove('h-8', 'items-center', 'space-x-1.5');
+                    bubble.innerHTML = text;
+                }
+                scrollToBottom();
+                if (onComplete) onComplete();
+            }, 1200);
         }
 
         function appendTeamMessage(text) {
@@ -692,41 +716,41 @@
 
             if (upper === 'HINT') {
                 if (sessionState.tokens < 2) {
-                    appendGuideMessage("⚠️ Insufficient tokens!");
+                    appendGuideMessageWithTyping("⚠️ Insufficient tokens!");
                     return;
                 }
                 sessionState.tokens -= 2;
                 const hintIndex = Math.min(sessionState.attempts, currentCP.hints.length - 1);
-                appendGuideMessage(`💡 Hint: ${currentCP.hints[hintIndex]}`);
+                appendGuideMessageWithTyping(`💡 Hint: ${currentCP.hints[hintIndex]}`);
                 updateHUD();
                 return;
             }
 
             if (upper === 'LOST') {
                 if (sessionState.tokens < 2) {
-                    appendGuideMessage("⚠️ Insufficient tokens!");
+                    appendGuideMessageWithTyping("⚠️ Insufficient tokens!");
                     return;
                 }
                 sessionState.tokens -= 2;
-                appendGuideMessage(`🗺️ W3W: ${currentCP.w3w}`);
+                appendGuideMessageWithTyping(`🗺️ What3Words Location: ${currentCP.w3w}`);
                 updateHUD();
                 return;
             }
 
             if (upper === 'WORK') {
                 sessionState.tokens += 3;
-                appendGuideMessage("🧩 Riddle Solved! +3 Bonus Tokens.");
+                appendGuideMessageWithTyping("🧩 Riddle Solved! +3 Bonus Tokens added to your balance.");
                 updateHUD();
                 return;
             }
 
             if (upper === 'SCORE') {
-                appendGuideMessage(`⏱️ Status: Checkpoint ${sessionState.currentCheckpoint + 1} | Tokens: ${sessionState.tokens} | Penalties: ${sessionState.penalties}m`);
+                appendGuideMessageWithTyping(`⏱️ Status: Checkpoint ${sessionState.currentCheckpoint + 1} | Tokens: ${sessionState.tokens} | Penalties: ${sessionState.penalties}m`);
                 return;
             }
 
             if (text.toLowerCase() === currentCP.answer.toLowerCase()) {
-                appendGuideMessage(currentCP.answerMessage);
+                appendGuideMessageWithTyping(currentCP.answerMessage);
                 sessionState.currentCheckpoint++;
                 sessionState.attempts = 0;
                 updateHUD();
@@ -737,13 +761,13 @@
                 updateHUD();
                 
                 if (sessionState.attempts >= 5) {
-                    appendGuideMessage(`⚠️ Max attempts reached! Answer was "${currentCP.answer}". Moving on.`);
+                    appendGuideMessageWithTyping(`⚠️ Maximum attempts reached! The correct answer was "${currentCP.answer}". Moving forward.`);
                     sessionState.currentCheckpoint++;
                     sessionState.attempts = 0;
                     updateHUD();
                     setTimeout(() => presentCheckpoint(sessionState.currentCheckpoint), 1000);
                 } else {
-                    appendGuideMessage(`You Have Entered An Incorrect Answer. You Have Used ${sessionState.attempts}/5 Answer Attempts At This Location. Please Ensure You Have Checked Your Spelling Before Continuing. If You Need Help With Getting The Answer You Can Use The Command [HINT] For A Hint About What You're Looking For. There Are 3 Hints Available For Each Location. If You Believe You May Be In The Wrong Location, Use The Command [LOST] For A What3Words Location Of This Answer. Be Aware Both HINT and LOST Come With A 2 Token Cost.`);
+                    appendGuideMessageWithTyping(`Incorrect answer. You have used ${sessionState.attempts}/5 attempts at this location. Double-check your spelling or type HINT or LOST to use tokens.`);
                 }
             }
         }
@@ -811,7 +835,6 @@
             const btnContainer = document.getElementById('modal-buttons');
             btnContainer.innerHTML = '';
 
-            // Example 3 routes
             const routesList = [
                 { id: 'A', name: 'Route Alpha (North Ridge)' },
                 { id: 'B', name: 'Route Bravo (Valley Trail)' },
@@ -842,7 +865,6 @@
                 t.startTime = new Date().toLocaleTimeString();
                 localStorage.setItem('galileo_teams_registry', JSON.stringify(teams));
                 
-                // If active session matches
                 if (sessionState.teamName.toLowerCase() === teamName.toLowerCase()) {
                     sessionState = t;
                     saveActiveSession();
