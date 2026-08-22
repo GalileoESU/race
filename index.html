@@ -41,7 +41,7 @@
     <!-- VIEW 1: LANDING PAGE (/race/home) -->
     <div id="view-home" class="view-screen hidden flex-1 flex flex-col justify-between items-center p-6 max-w-md mx-auto w-full text-center py-12">
         <div class="space-y-3 mt-8">
-            <span class="text-5xl">🌿</span>
+            <img src="logo.png" alt="Galileo ESU Logo" class="w-20 h-20 mx-auto object-contain drop-shadow-md">
             <h2 class="text-xs font-semibold tracking-widest text-sageHighlight uppercase">Galileo ESU</h2>
             <h1 class="text-3xl font-bold tracking-wider font-heading text-amber-300">2026 Rough Close Race</h1>
             <p class="text-xs text-gray-300 max-w-xs mx-auto">Official tactical mobile adventure system & live briefing portal.</p>
@@ -221,7 +221,7 @@
             <form id="form-admin-auth" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Passcode</label>
-                    <input type="password" id="admin-pin" required placeholder="Enter PIN (4070)" maxlength="4" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-center font-mono tracking-widest text-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-tacticalOlive">
+                    <input type="password" id="admin-pin" required placeholder="Enter Pin" maxlength="4" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-center font-mono tracking-widest text-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-tacticalOlive">
                 </div>
                 <button type="submit" class="w-full bg-tacticalOlive hover:bg-tacticalOlive/90 text-white font-bold py-3 rounded-xl shadow uppercase tracking-wider text-sm">Unlock Host Dashboard</button>
             </form>
@@ -238,7 +238,10 @@
                     <h1 class="text-2xl font-bold font-heading text-tacticalOlive">Host Control Dashboard</h1>
                     <p class="text-xs text-gray-500">Live QR Codes & Team Telemetry</p>
                 </div>
-                <button onclick="navigateTo('home')" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow hover:bg-red-700">Logout</button>
+                <div class="flex items-center space-x-2">
+                    <button onclick="deleteAllTeams()" class="bg-red-600 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow hover:bg-red-700">Delete All Teams</button>
+                    <button onclick="navigateTo('home')" class="bg-gray-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow hover:bg-gray-700">Logout</button>
+                </div>
             </div>
 
             <!-- 3 QR Codes Section -->
@@ -268,11 +271,11 @@
                         <thead>
                             <tr class="bg-gray-100 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase">
                                 <th class="p-4">Team Name</th>
-                                <th class="p-4">PIN</th>
                                 <th class="p-4">Tokens</th>
                                 <th class="p-4">Penalties</th>
                                 <th class="p-4">Checkpoint</th>
                                 <th class="p-4">Status</th>
+                                <th class="p-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="admin-teams-table" class="divide-y divide-gray-100 text-sm"></tbody>
@@ -299,7 +302,6 @@
             completed: false
         };
 
-        // Hash Router Map
         const routes = {
             'home': 'view-home',
             'login': 'view-login',
@@ -320,10 +322,7 @@
             let hash = window.location.hash.replace('#', '') || 'home';
             if (!routes[hash]) hash = 'home';
 
-            // Hide all views
             document.querySelectorAll('.view-screen').forEach(el => el.classList.add('hidden'));
-            
-            // Show target view
             document.getElementById(routes[hash]).classList.remove('hidden');
 
             if (hash === 'create-scan') {
@@ -412,7 +411,6 @@
             startCamera();
         }
 
-        // Verify Team Creation Code
         document.getElementById('form-verify-code').addEventListener('submit', (e) => {
             e.preventDefault();
             const code = document.getElementById('creation-code-input').value.trim();
@@ -423,7 +421,7 @@
             }
         });
 
-        // Register Team Details
+        // Register Team Details with Duplicate Check
         document.getElementById('form-register-details').addEventListener('submit', async (e) => {
             e.preventDefault();
             const teamName = document.getElementById('new-team-name').value.trim();
@@ -431,6 +429,13 @@
 
             if (!teamName || pin.length !== 4) {
                 alert('Please provide a team name and 4-digit PIN.');
+                return;
+            }
+
+            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
+            let exists = teams.some(t => t.teamName.toLowerCase() === teamName.toLowerCase());
+            if (exists) {
+                alert('A team with this name already exists. Please choose a different team name.');
                 return;
             }
 
@@ -452,7 +457,6 @@
             navigateTo('dashboard');
         });
 
-        // Rejoin Team
         document.getElementById('form-rejoin-team').addEventListener('submit', async (e) => {
             e.preventDefault();
             const teamName = document.getElementById('rejoin-team-name').value.trim();
@@ -625,29 +629,26 @@
                     updateHUD();
                     setTimeout(() => presentCheckpoint(sessionState.currentCheckpoint), 1000);
                 } else {
-                    appendGuideMessage(`You Have Entered A Incorrect Answer. You Have Used ${sessionState.attempts}/5 Answer Attempts At This Location. Please Ensure You Have Checked Your Spelling Before Continuing. If You Need Help With Getting The Answer You Can Use The Command [HINT] For A Hint About What Your Looking For. There Are 3 Hints Available For Each Location. If You Believe You May Be In The Wrong Location, Use The Command [LOST] For A What3Words Location Of This Answer. Be Aware Both HINT and LOST Come With A 2 Token Cost.`);
+                    appendGuideMessage(`You Have Entered An Incorrect Answer. You Have Used ${sessionState.attempts}/5 Answer Attempts At This Location. Please Ensure You Have Checked Your Spelling Before Continuing. If You Need Help With Getting The Answer You Can Use The Command [HINT] For A Hint About What You're Looking For. There Are 3 Hints Available For Each Location. If You Believe You May Be In The Wrong Location, Use The Command [LOST] For A What3Words Location Of This Answer. Be Aware Both HINT and LOST Come With A 2 Token Cost.`);
                 }
             }
         }
 
-        // Host Portal Authentication & Rendering
         document.getElementById('form-admin-auth').addEventListener('submit', (e) => {
             e.preventDefault();
             const pin = document.getElementById('admin-pin').value;
             if (pin === '4070') {
                 navigateTo('host');
             } else {
-                alert('Incorrect Passcode (Use 4070)');
+                alert('Incorrect Passcode');
             }
         });
 
         function renderHostDashboard() {
-            // Clear previous QR renderings to avoid duplicates
             document.getElementById('qrcode-web').innerHTML = "";
             document.getElementById('qrcode-create').innerHTML = "";
             document.getElementById('qrcode-start').innerHTML = "";
 
-            // Generate live QR codes using qrcode.js
             new QRCode(document.getElementById("qrcode-web"), { text: window.location.origin + window.location.pathname + "#/home", width: 120, height: 120 });
             new QRCode(document.getElementById("qrcode-create"), { text: "CREATE-TEAM-849201", width: 120, height: 120 });
             new QRCode(document.getElementById("qrcode-start"), { text: "START-RACE-302948", width: 120, height: 120 });
@@ -665,7 +666,6 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="p-4 font-semibold text-gray-900">${t.teamName}</td>
-                    <td class="p-4 font-mono text-gray-600">${t.pin}</td>
                     <td class="p-4">${t.tokens}</td>
                     <td class="p-4 text-amber-600 font-semibold">${t.penalties}m</td>
                     <td class="p-4">CP ${t.currentCheckpoint + 1} / ${routeCheckpoints.length || '?'}</td>
@@ -674,9 +674,28 @@
                             ${t.completed ? 'Finished' : 'In Progress'}
                         </span>
                     </td>
+                    <td class="p-4 text-right">
+                        <button onclick="deleteTeam('${t.teamName.replace(/'/g, "\\'")}')" class="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-lg text-xs font-semibold">Delete</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function deleteTeam(teamName) {
+            if (confirm(`Are you sure you want to delete team "${teamName}"?`)) {
+                let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
+                teams = teams.filter(t => t.teamName.toLowerCase() !== teamName.toLowerCase());
+                localStorage.setItem('galileo_teams_registry', JSON.stringify(teams));
+                renderHostDashboard();
+            }
+        }
+
+        function deleteAllTeams() {
+            if (confirm("WARNING: Are you sure you want to delete ALL teams? This action cannot be undone.")) {
+                localStorage.removeItem('galileo_teams_registry');
+                renderHostDashboard();
+            }
         }
 
         function saveTeamRegistry(teamObj) {
