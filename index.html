@@ -43,10 +43,10 @@
         .dot-3 { animation: bounce-custom 0.6s infinite ease-in-out 0.3s; }
     </style>
 </head>
-<body class="camo-bg text-white min-h-screen flex flex-col justify-between select-none">
+<body class="camo-bg text-white h-screen overflow-hidden flex flex-col justify-between select-none">
 
     <!-- VIEW 1: LANDING PAGE -->
-    <div id="view-home" class="view-screen hidden flex-1 flex flex-col justify-between items-center p-6 max-w-md mx-auto w-full text-center py-12">
+    <div id="view-home" class="view-screen hidden flex-1 flex flex-col justify-between items-center p-6 max-w-md mx-auto w-full text-center py-12 overflow-y-auto">
         <div class="space-y-3 mt-8">
             <img src="logo.png" alt="Galileo ESU Logo" class="w-20 h-20 mx-auto object-contain drop-shadow-md">
             <h2 class="text-xs font-semibold tracking-widest text-sageHighlight uppercase">Galileo ESU</h2>
@@ -69,7 +69,7 @@
     </div>
 
     <!-- VIEW 2: TEAM LOGIN MENU -->
-    <div id="view-login" class="view-screen hidden flex-1 flex flex-col justify-center items-center p-6 max-w-md mx-auto w-full">
+    <div id="view-login" class="view-screen hidden flex-1 flex flex-col justify-center items-center p-6 max-w-md mx-auto w-full overflow-y-auto">
         <div class="bg-tacticalOlive/90 border border-mossGreen p-8 rounded-2xl shadow-2xl w-full backdrop-blur-md space-y-6">
             <div class="text-center">
                 <span class="text-3xl">🛡️</span>
@@ -93,7 +93,7 @@
     </div>
 
     <!-- VIEW 3: CREATE TEAM SCAN -->
-    <div id="view-create-scan" class="view-screen hidden flex-1 flex flex-col justify-between p-6 max-w-md mx-auto w-full">
+    <div id="view-create-scan" class="view-screen hidden flex-1 flex flex-col justify-between p-6 max-w-md mx-auto w-full overflow-y-auto">
         <div class="flex justify-between items-center mb-2">
             <button onclick="navigateTo('login')" class="text-xs text-sageHighlight hover:text-white">← Back</button>
             <h2 class="text-xs font-semibold uppercase tracking-wider text-sageHighlight font-heading">Team Creation</h2>
@@ -106,9 +106,9 @@
                 <p class="text-xs text-gray-300">Align QR code within frame.</p>
             </div>
 
-            <div class="relative w-full h-56 bg-black/60 border-2 border-mossGreen rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
+            <div class="relative w-full h-48 bg-black/60 border-2 border-mossGreen rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
                 <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay muted playsinline></video>
-                <div class="absolute w-40 h-40 border-2 border-amber-400/80 rounded-xl pointer-events-none flex items-center justify-center">
+                <div class="absolute w-36 h-36 border-2 border-amber-400/80 rounded-xl pointer-events-none flex items-center justify-center">
                     <div class="w-full h-0.5 bg-red-500/80 animate-pulse"></div>
                 </div>
             </div>
@@ -131,7 +131,7 @@
     </div>
 
     <!-- VIEW 4: TEAM DETAILS REGISTRATION -->
-    <div id="view-create-details" class="view-screen hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full">
+    <div id="view-create-details" class="view-screen hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full overflow-y-auto">
         <div class="bg-tacticalOlive/90 border border-mossGreen p-8 rounded-2xl shadow-2xl w-full backdrop-blur-md">
             <div class="text-center mb-6">
                 <span class="text-3xl">🛡️</span>
@@ -158,7 +158,7 @@
     </div>
 
     <!-- VIEW 5: REJOIN TEAM SCREEN -->
-    <div id="view-rejoin" class="view-screen hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full">
+    <div id="view-rejoin" class="view-screen hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full overflow-y-auto">
         <div class="bg-tacticalOlive/90 border border-mossGreen p-8 rounded-2xl shadow-2xl w-full backdrop-blur-md">
             <div class="text-center mb-6">
                 <span class="text-3xl">🔄</span>
@@ -188,8 +188,8 @@
     </div>
 
     <!-- VIEW 6: TEAM CHAT DASHBOARD -->
-    <div id="view-dashboard" class="view-screen hidden flex-1 flex flex-col max-w-md mx-auto w-full h-screen bg-camoDark">
-        <header class="bg-tacticalOlive border-b border-mossGreen px-4 py-3 flex justify-between items-center sticky top-0 z-20 shadow-md">
+    <div id="view-dashboard" class="view-screen hidden flex-1 flex flex-col max-w-md mx-auto w-full h-full bg-camoDark overflow-hidden relative">
+        <header class="bg-tacticalOlive border-b border-mossGreen px-4 py-3 flex justify-between items-center z-20 shadow-md shrink-0">
             <div class="flex items-center space-x-2">
                 <span class="w-3 h-3 rounded-full bg-green-400 animate-pulse"></span>
                 <div>
@@ -206,9 +206,10 @@
             </div>
         </header>
 
-        <div id="chat-feed" class="flex-1 overflow-y-auto p-4 space-y-4 pb-24"></div>
+        <!-- CHAT FEED (Only this part scrolls independently) -->
+        <div id="chat-feed" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
 
-        <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-tacticalOlive border-t border-mossGreen p-3 z-20 shadow-2xl">
+        <div class="bg-tacticalOlive border-t border-mossGreen p-3 z-20 shadow-2xl shrink-0">
             <div id="chat-controls-wrapper">
                 <div class="flex justify-between gap-1 mb-2">
                     <button onclick="sendQuickCommand('HINT')" class="flex-1 bg-camoDark/80 hover:bg-camoDark border border-mossGreen/60 text-[11px] py-1.5 rounded-lg text-sageHighlight font-semibold">💡 HINT (-2)</button>
@@ -226,7 +227,7 @@
     </div>
 
     <!-- VIEW 7: HOST PORTAL -->
-    <div id="view-hlogin" class="view-screen hidden flex-1 flex flex-col justify-center items-center p-6 max-w-md mx-auto w-full">
+    <div id="view-hlogin" class="view-screen hidden flex-1 flex flex-col justify-center items-center p-6 max-w-md mx-auto w-full overflow-y-auto">
         <div class="bg-white border border-gray-300 p-8 rounded-2xl shadow-xl w-full">
             <h2 class="text-xl font-bold font-heading text-center mb-4 text-tacticalOlive">Host Portal Access</h2>
             <form id="form-admin-auth" class="space-y-4">
@@ -242,8 +243,8 @@
         </div>
     </div>
 
-    <div id="view-host" class="view-screen hidden flex-1 flex flex-col bg-militaryKhaki text-gray-900 min-h-screen p-4 md:p-8">
-        <div class="max-w-4xl mx-auto w-full space-y-6">
+    <div id="view-host" class="view-screen hidden flex-1 flex flex-col bg-militaryKhaki text-gray-900 h-screen overflow-y-auto p-4 md:p-8">
+        <div class="max-w-4xl mx-auto w-full space-y-6 pb-12">
             <div class="flex justify-between items-center border-b pb-4">
                 <div>
                     <h1 class="text-2xl font-bold font-heading text-tacticalOlive">Host Control Dashboard</h1>
@@ -312,6 +313,7 @@
         let activeStream = null;
         let useFrontCamera = false;
         let lastQueuedTeamModalShown = null;
+        let chatInitialized = false;
 
         let sessionState = {
             teamName: "",
@@ -323,7 +325,8 @@
             penalties: 0,
             attempts: 0,
             startTime: null,
-            completed: false
+            completed: false,
+            messageHistory: []
         };
 
         const routesMap = {
@@ -474,11 +477,13 @@
                 penalties: 0,
                 attempts: 0,
                 startTime: null,
-                completed: false
+                completed: false,
+                messageHistory: []
             };
 
             saveTeamRegistry(sessionState);
             saveActiveSession();
+            chatInitialized = false;
             navigateTo('dashboard');
         });
 
@@ -494,6 +499,7 @@
                 if (routeCheckpoints.length === 0) await loadCheckpoints();
                 sessionState = found;
                 saveActiveSession();
+                chatInitialized = false;
                 navigateTo('dashboard');
             } else {
                 alert('Team not found or incorrect PIN.');
@@ -503,18 +509,38 @@
         function teamLogout() {
             if (confirm("Are you sure you want to log out of your team session? You can rejoin anytime using your team name and PIN.")) {
                 localStorage.removeItem('galileo_active_session');
+                chatInitialized = false;
                 navigateTo('login');
             }
         }
 
-        function initChatSession() {
+        async function initChatSession() {
+            syncStateFromStorage();
             const feed = document.getElementById('chat-feed');
+            
+            // If already initialized for this session load, just rebuild from messageHistory
+            if (chatInitialized && sessionState.messageHistory && sessionState.messageHistory.length > 0) {
+                feed.innerHTML = '';
+                sessionState.messageHistory.forEach(item => {
+                    feed.innerHTML += item;
+                });
+                scrollToBottom();
+                updateChatInputState();
+                updateHUD();
+                return;
+            }
+
             feed.innerHTML = '';
+            sessionState.messageHistory = [];
 
-            // Restored full, original briefing with correct grammar and strong tags
-            const detailedBriefing = `Welcome to the Rough Close Race 2026! Navigate around the campsite through your assigned checkpoints, solving location-based questions to advance.<br><br>⏱️ <strong>Beat the Clock:</strong> You are always racing against time.<br>💡 <strong>Hints (Type HINT):</strong> Costs 2 tokens for a direct clue.<br>🗺️ <strong>Lost Support (Type LOST):</strong> Costs 2 tokens for a What3Words location.<br>🧩 <strong>Extra Work (Type WORK):</strong> Solve a riddle to earn +3 tokens anytime.<br>⏱️ <strong>Score Check (Type SCORE):</strong> View your current token balance and penalties.<br><br>Remaining tokens at the finish line remove penalty time (3 tokens = 1 minute off).`;
+            // Sequential Kestrel intro messages
+            const msg1 = `Welcome to the Rough Close Race 2026! Navigate around the campsite through your assigned checkpoints, solving location-based questions to advance.`;
+            const msg2 = `⏱️ <strong>Beat the Clock:</strong> You are always racing against time.<br>💡 <strong>Hints (Type HINT):</strong> Costs 2 tokens for a direct clue.<br>🗺️ <strong>Lost Support (Type LOST):</strong> Costs 2 tokens for a What3Words location.<br>🧩 <strong>Extra Work (Type WORK):</strong> Solve a riddle to earn +3 tokens anytime.<br>⏱️ <strong>Score Check (Type SCORE):</strong> View your current token balance and penalties.<br><br>Remaining tokens at the finish line remove penalty time (3 tokens = 1 minute off).`;
 
-            appendGuideMessageWithTyping(detailedBriefing, () => {
+            await appendGuideMessageSequential(msg1);
+            await appendGuideMessageSequential(msg2);
+
+            if (sessionState.status === "Preparing") {
                 const readyCardHTML = `
                     <div id="ready-card" class="bg-tacticalOlive border-2 border-amber-400 p-4 rounded-xl shadow-lg my-3 space-y-3 text-center">
                         <h3 class="font-bold text-amber-300 font-heading text-base">Ready To Start</h3>
@@ -532,9 +558,13 @@
                     </div>
                 `;
                 appendCustomHTML(readyCardHTML);
-            });
+            } else if (sessionState.status === "Queued") {
+                appendSystemStatusMessage("Waiting for host confirmation and route assignment...");
+            } else if (sessionState.status === "Started") {
+                presentCheckpoint(sessionState.currentCheckpoint);
+            }
 
-            syncStateFromStorage();
+            chatInitialized = true;
             updateChatInputState();
             updateHUD();
         }
@@ -598,7 +628,7 @@
                     updateChatInputState();
                     updateHUD();
                     if (sessionState.status === "Started" && oldStatus !== "Started") {
-                        appendGuideMessageWithTyping(`Your team has been assigned Route ${sessionState.routeAssigned}!`);
+                        appendGuideMessageSequential(`Your team has been assigned Route ${sessionState.routeAssigned}!`);
                         presentCheckpoint(sessionState.currentCheckpoint);
                     }
                 }
@@ -610,7 +640,7 @@
 
         function presentCheckpoint(index) {
             if (index >= routeCheckpoints.length) {
-                appendGuideMessageWithTyping(`🏆 ROUTE COMPLETE! Amazing work team!`);
+                appendGuideMessageSequential(`🏆 ROUTE COMPLETE! Amazing work team!`);
                 sessionState.completed = true;
                 saveActiveSession();
                 updateTeamRegistry(sessionState);
@@ -637,70 +667,73 @@
             return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        function appendGuideMessageWithTyping(text, onComplete = null) {
-            const feed = document.getElementById('chat-feed');
-            const containerId = 'typing-' + Date.now();
-            const timeStr = getCurrentTimeString();
-            
-            // Check if last message was from Guide Kestrel to group them
-            const lastMessageGroup = feed.lastElementChild;
-            const isGroupable = lastMessageGroup && lastMessageGroup.classList.contains('guide-group');
+        function appendGuideMessageSequential(text) {
+            return new Promise((resolve) => {
+                const feed = document.getElementById('chat-feed');
+                const containerId = 'typing-' + Date.now();
+                const timeStr = getCurrentTimeString();
+                
+                const lastMessageGroup = feed.lastElementChild;
+                const isGroupable = lastMessageGroup && lastMessageGroup.classList.contains('guide-group');
 
-            if (isGroupable) {
-                const bubbleContainer = lastMessageGroup.querySelector('.guide-bubbles');
-                const newBubbleId = 'bubble-' + Date.now();
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = `
-                    <div id="${newBubbleId}" class="bg-tacticalOlive border border-mossGreen/50 p-3 rounded-2xl text-xs text-white max-w-[80%] shadow flex items-center space-x-1.5 h-8 mt-1.5">
-                        <div class="w-2 h-2 bg-sageHighlight rounded-full dot-1"></div>
-                        <div class="w-2 h-2 bg-sageHighlight rounded-full dot-2"></div>
-                        <div class="w-2 h-2 bg-sageHighlight rounded-full dot-3"></div>
-                    </div>
-                `;
-                bubbleContainer.appendChild(tempDiv.firstElementChild);
-                scrollToBottom();
-
-                setTimeout(() => {
-                    const bubble = document.getElementById(newBubbleId);
-                    if (bubble) {
-                        bubble.classList.remove('h-8', 'items-center', 'space-x-1.5', 'mt-1.5');
-                        bubble.classList.add('mt-1.5', 'relative', 'pb-4');
-                        bubble.innerHTML = `${text}<span class="absolute bottom-1 right-2 text-[9px] text-sageHighlight/70">${timeStr}</span>`;
-                    }
-                    scrollToBottom();
-                    if (onComplete) onComplete();
-                }, 1200);
-
-            } else {
-                const div = document.createElement('div');
-                div.className = "flex items-start space-x-2 my-2 guide-group";
-                div.innerHTML = `
-                    <div class="w-8 h-8 rounded-full overflow-hidden border border-mossGreen shrink-0 shadow bg-tacticalOlive">
-                        <img src="https://th.bing.com/th/id/OIP.PYs6HZXYcjaQmfRH_QWLmQHaHa?w=202&h=202&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" alt="Guide Kestrel" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex flex-col space-y-1 w-full guide-bubbles">
-                        <span class="text-[10px] text-sageHighlight font-semibold ml-1">Guide Kestrel</span>
-                        <div id="${containerId}" class="bg-tacticalOlive border border-mossGreen/50 p-3 rounded-2xl rounded-tl-sm text-xs text-white max-w-[80%] shadow flex items-center space-x-1.5 h-8">
+                if (isGroupable) {
+                    const bubbleContainer = lastMessageGroup.querySelector('.guide-bubbles');
+                    const newBubbleId = 'bubble-' + Date.now();
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = `
+                        <div id="${newBubbleId}" class="bg-tacticalOlive border border-mossGreen/50 p-3 rounded-2xl text-xs text-white max-w-[85%] shadow flex items-center space-x-1.5 h-8 mt-1.5">
                             <div class="w-2 h-2 bg-sageHighlight rounded-full dot-1"></div>
                             <div class="w-2 h-2 bg-sageHighlight rounded-full dot-2"></div>
                             <div class="w-2 h-2 bg-sageHighlight rounded-full dot-3"></div>
                         </div>
-                    </div>
-                `;
-                feed.appendChild(div);
-                scrollToBottom();
-
-                setTimeout(() => {
-                    const bubble = document.getElementById(containerId);
-                    if (bubble) {
-                        bubble.classList.remove('h-8', 'items-center', 'space-x-1.5');
-                        bubble.classList.add('relative', 'pb-4');
-                        bubble.innerHTML = `${text}<span class="absolute bottom-1 right-2 text-[9px] text-sageHighlight/70">${timeStr}</span>`;
-                    }
+                    `;
+                    bubbleContainer.appendChild(tempDiv.firstElementChild);
                     scrollToBottom();
-                    if (onComplete) onComplete();
-                }, 1200);
-            }
+
+                    setTimeout(() => {
+                        const bubble = document.getElementById(newBubbleId);
+                        if (bubble) {
+                            bubble.classList.remove('h-8', 'items-center', 'space-x-1.5');
+                            bubble.classList.add('mt-1.5', 'relative', 'pb-4');
+                            bubble.innerHTML = `${text}<span class="absolute bottom-1 right-2 text-[9px] text-sageHighlight/70">${timeStr}</span>`;
+                        }
+                        saveMessageToHistory(feed.innerHTML);
+                        scrollToBottom();
+                        resolve();
+                    }, 1200);
+
+                } else {
+                    const div = document.createElement('div');
+                    div.className = "flex items-start space-x-2 my-2 guide-group";
+                    div.innerHTML = `
+                        <div class="w-8 h-8 rounded-full overflow-hidden border border-mossGreen shrink-0 shadow bg-tacticalOlive">
+                            <img src="https://th.bing.com/th/id/OIP.PYs6HZXYcjaQmfRH_QWLmQHaHa?w=202&h=202&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" alt="Guide Kestrel" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex flex-col space-y-1 w-full guide-bubbles">
+                            <span class="text-[10px] text-sageHighlight font-semibold ml-1">Guide Kestrel</span>
+                            <div id="${containerId}" class="bg-tacticalOlive border border-mossGreen/50 p-3 rounded-2xl rounded-tl-sm text-xs text-white max-w-[85%] shadow flex items-center space-x-1.5 h-8">
+                                <div class="w-2 h-2 bg-sageHighlight rounded-full dot-1"></div>
+                                <div class="w-2 h-2 bg-sageHighlight rounded-full dot-2"></div>
+                                <div class="w-2 h-2 bg-sageHighlight rounded-full dot-3"></div>
+                            </div>
+                        </div>
+                    `;
+                    feed.appendChild(div);
+                    scrollToBottom();
+
+                    setTimeout(() => {
+                        const bubble = document.getElementById(containerId);
+                        if (bubble) {
+                            bubble.classList.remove('h-8', 'items-center', 'space-x-1.5');
+                            bubble.classList.add('relative', 'pb-4');
+                            bubble.innerHTML = `${text}<span class="absolute bottom-1 right-2 text-[9px] text-sageHighlight/70">${timeStr}</span>`;
+                        }
+                        saveMessageToHistory(feed.innerHTML);
+                        scrollToBottom();
+                        resolve();
+                    }, 1200);
+                }
+            });
         }
 
         function appendSystemStatusMessage(text) {
@@ -715,6 +748,7 @@
                 </div>
             `;
             feed.appendChild(div);
+            saveMessageToHistory(feed.innerHTML);
             scrollToBottom();
         }
 
@@ -724,12 +758,13 @@
             const timeStr = getCurrentTimeString();
             div.className = "flex justify-end my-2";
             div.innerHTML = `
-                <div class="bg-sageHighlight text-gray-900 p-3 rounded-2xl rounded-tr-sm text-xs max-w-[80%] shadow font-medium relative pb-4">
+                <div class="bg-sageHighlight text-gray-900 p-3 rounded-2xl rounded-tr-sm text-xs max-w-[85%] shadow font-medium relative pb-4">
                     ${text}
                     <span class="absolute bottom-1 right-2 text-[9px] text-gray-500">${timeStr}</span>
                 </div>
             `;
             feed.appendChild(div);
+            saveMessageToHistory(feed.innerHTML);
             scrollToBottom();
         }
 
@@ -738,7 +773,14 @@
             const div = document.createElement('div');
             div.innerHTML = html;
             feed.appendChild(div);
+            saveMessageToHistory(feed.innerHTML);
             scrollToBottom();
+        }
+
+        function saveMessageToHistory(htmlContent) {
+            sessionState.messageHistory = Array.from(document.getElementById('chat-feed').children).map(node => node.outerHTML);
+            saveActiveSession();
+            updateTeamRegistry(sessionState);
         }
 
         function scrollToBottom() {
@@ -754,7 +796,7 @@
             updateTeamRegistry(sessionState);
         }
 
-        document.getElementById('form-chat').addEventListener('submit', (e) => {
+        document.getElementById('form-chat').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (sessionState.status !== "Started") return;
 
@@ -765,73 +807,73 @@
             inputField.value = '';
 
             if (sessionState.completed) return;
-            processAnswerOrCommand(val);
+            await processAnswerOrCommand(val);
         });
 
-        function sendQuickCommand(cmd) {
+        async function sendQuickCommand(cmd) {
             if (sessionState.status !== "Started") return;
             appendTeamMessage(cmd);
-            processAnswerOrCommand(cmd);
+            await processAnswerOrCommand(cmd);
         }
 
-        function processAnswerOrCommand(text) {
+        async function processAnswerOrCommand(text) {
             const upper = text.toUpperCase();
             const currentCP = routeCheckpoints[sessionState.currentCheckpoint];
 
             if (upper === 'HINT') {
                 if (sessionState.tokens < 2) {
-                    appendGuideMessageWithTyping("⚠️ Insufficient tokens!");
+                    await appendGuideMessageSequential("⚠️ Insufficient tokens!");
                     return;
                 }
                 sessionState.tokens -= 2;
                 const hintIndex = Math.min(sessionState.attempts, currentCP.hints.length - 1);
-                appendGuideMessageWithTyping(`💡 Hint: ${currentCP.hints[hintIndex]}`);
+                await appendGuideMessageSequential(`💡 Hint: ${currentCP.hints[hintIndex]}`);
                 updateHUD();
                 return;
             }
 
             if (upper === 'LOST') {
                 if (sessionState.tokens < 2) {
-                    appendGuideMessageWithTyping("⚠️ Insufficient tokens!");
+                    await appendGuideMessageSequential("⚠️ Insufficient tokens!");
                     return;
                 }
                 sessionState.tokens -= 2;
-                appendGuideMessageWithTyping(`🗺️ What3Words Location: ${currentCP.w3w}`);
+                await appendGuideMessageSequential(`🗺️ What3Words Location: ${currentCP.w3w}`);
                 updateHUD();
                 return;
             }
 
             if (upper === 'WORK') {
                 sessionState.tokens += 3;
-                appendGuideMessageWithTyping("🧩 Riddle Solved! +3 Bonus Tokens added to your balance.");
+                await appendGuideMessageSequential("🧩 Riddle Solved! +3 Bonus Tokens added to your balance.");
                 updateHUD();
                 return;
             }
 
             if (upper === 'SCORE') {
-                appendGuideMessageWithTyping(`⏱️ Status: Checkpoint ${sessionState.currentCheckpoint + 1} | Tokens: ${sessionState.tokens} | Penalties: ${sessionState.penalties}m`);
+                await appendGuideMessageSequential(`⏱️ Status: Checkpoint ${sessionState.currentCheckpoint + 1} | Tokens: ${sessionState.tokens} | Penalties: ${sessionState.penalties}m`);
                 return;
             }
 
             if (text.toLowerCase() === currentCP.answer.toLowerCase()) {
-                appendGuideMessageWithTyping(currentCP.answerMessage);
+                await appendGuideMessageSequential(currentCP.answerMessage);
                 sessionState.currentCheckpoint++;
                 sessionState.attempts = 0;
                 updateHUD();
-                setTimeout(() => presentCheckpoint(sessionState.currentCheckpoint), 1000);
+                setTimeout(() => presentCheckpoint(sessionState.currentCheckpoint), 500);
             } else {
                 sessionState.attempts++;
                 sessionState.penalties += 3;
                 updateHUD();
                 
                 if (sessionState.attempts >= 5) {
-                    appendGuideMessageWithTyping(`⚠️ Maximum attempts reached! The correct answer was "${currentCP.answer}". Moving forward.`);
+                    await appendGuideMessageSequential(`⚠️ Maximum attempts reached! The correct answer was "${currentCP.answer}". Moving forward.`);
                     sessionState.currentCheckpoint++;
                     sessionState.attempts = 0;
                     updateHUD();
-                    setTimeout(() => presentCheckpoint(sessionState.currentCheckpoint), 1000);
+                    setTimeout(() => presentCheckpoint(sessionState.currentCheckpoint), 500);
                 } else {
-                    appendGuideMessageWithTyping(`Incorrect answer. You have used ${sessionState.attempts}/5 attempts at this location. Double-check your spelling or type HINT or LOST to use tokens.`);
+                    await appendGuideMessageSequential(`Incorrect answer. You have used ${sessionState.attempts}/5 attempts at this location. Double-check your spelling or type HINT or LOST to use tokens.`);
                 }
             }
         }
