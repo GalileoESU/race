@@ -311,6 +311,7 @@
         let routeCheckpoints = [];
         let activeStream = null;
         let useFrontCamera = false;
+        let lastQueuedTeamModalShown = null;
 
         let sessionState = {
             teamName: "",
@@ -510,19 +511,24 @@
             const feed = document.getElementById('chat-feed');
             feed.innerHTML = '';
 
-            // Concise & Polished Briefing Message
-            const conciseBriefing = `Welcome to the Rough Close Race 2026! Navigate around the campsite through your assigned checkpoints, solving location-based questions to advance.<br><br>⏱️ **Beat the Clock:** You are always racing against time.<br>💡 **Hints (Type HINT):** Costs 2 tokens for a direct clue.<br>🗺️ **Lost Support (Type LOST):** Costs 2 tokens for a What3Words location.<br>🧩 **Extra Work (Type WORK):** Solve a riddle to earn +3 tokens anytime.<br>⏱️ **Score Check (Type SCORE):** View your current token balance and penalties.<br><br>Remaining tokens at the finish line remove penalty time (3 tokens = 1 minute off). Ask your host for the starting QR code to queue up!`;
+            // Restored full, original briefing with correct grammar and strong tags
+            const detailedBriefing = `Welcome to the Rough Close Race 2026! Navigate around the campsite through your assigned checkpoints, solving location-based questions to advance.<br><br>⏱️ <strong>Beat the Clock:</strong> You are always racing against time.<br>💡 <strong>Hints (Type HINT):</strong> Costs 2 tokens for a direct clue.<br>🗺️ <strong>Lost Support (Type LOST):</strong> Costs 2 tokens for a What3Words location.<br>🧩 <strong>Extra Work (Type WORK):</strong> Solve a riddle to earn +3 tokens anytime.<br>⏱️ <strong>Score Check (Type SCORE):</strong> View your current token balance and penalties.<br><br>Remaining tokens at the finish line remove penalty time (3 tokens = 1 minute off).`;
 
-            appendGuideMessageWithTyping(conciseBriefing, () => {
-                // 2. Ready to Start Card appears after briefing finishes typing
+            appendGuideMessageWithTyping(detailedBriefing, () => {
                 const readyCardHTML = `
                     <div id="ready-card" class="bg-tacticalOlive border-2 border-amber-400 p-4 rounded-xl shadow-lg my-3 space-y-3 text-center">
                         <h3 class="font-bold text-amber-300 font-heading text-base">Ready To Start</h3>
                         <p class="text-xs text-gray-200">Scan the start QR code or enter starting code to queue for route assignment.</p>
-                        <div class="flex gap-2">
-                            <button onclick="triggerStartScan()" class="flex-1 bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow">Scan Starting QR Code</button>
-                            <button onclick="promptStartCode()" class="flex-1 bg-camoDark hover:bg-camoDark/80 border border-mossGreen text-sageHighlight font-bold py-2.5 rounded-lg text-xs uppercase shadow">Enter Starting Code</button>
+                        <button onclick="triggerStartScan()" class="w-full bg-mossGreen hover:bg-mossGreen/90 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow">Scan QR Code</button>
+                        <div class="relative flex py-1 items-center">
+                            <div class="flex-grow border-t border-mossGreen/50"></div>
+                            <span class="flex-shrink mx-3 text-[10px] text-sageHighlight uppercase font-semibold">Or</span>
+                            <div class="flex-grow border-t border-mossGreen/50"></div>
                         </div>
+                        <form onsubmit="handleStartCodeSubmit(event)" class="flex gap-2">
+                            <input type="text" id="start-code-input" required placeholder="Enter starting code" class="flex-1 bg-camoDark border border-mossGreen rounded-xl px-3 py-2 text-xs text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mossGreen">
+                            <button type="submit" class="bg-mossGreen hover:bg-mossGreen/90 px-4 rounded-xl text-white font-bold text-xs uppercase shadow">Enter</button>
+                        </form>
                     </div>
                 `;
                 appendCustomHTML(readyCardHTML);
@@ -537,9 +543,10 @@
             handleStartQueued();
         }
 
-        function promptStartCode() {
-            const code = prompt("Enter Starting Code:");
-            if (code && code.trim().length > 0) {
+        function handleStartCodeSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('start-code-input');
+            if (input && input.value.trim().length > 0) {
                 handleStartQueued();
             }
         }
@@ -552,7 +559,7 @@
             const card = document.getElementById('ready-card');
             if (card) card.remove();
 
-            appendGuideMessageWithTyping("Waiting for host confirmation and route assignment...");
+            appendSystemStatusMessage("Waiting for host confirmation and route assignment...");
             updateChatInputState();
         }
 
@@ -591,10 +598,13 @@
                     updateChatInputState();
                     updateHUD();
                     if (sessionState.status === "Started" && oldStatus !== "Started") {
-                        appendGuideMessageWithTyping(`Team Name Has Been Assigned Route ${sessionState.routeAssigned}`);
+                        appendGuideMessageWithTyping(`Your team has been assigned Route ${sessionState.routeAssigned}!`);
                         presentCheckpoint(sessionState.currentCheckpoint);
                     }
                 }
+            }
+            if (window.location.hash.includes('host')) {
+                renderHostDashboard();
             }
         }, 2000);
 
@@ -622,47 +632,101 @@
             appendCustomHTML(cpHTML);
         }
 
+        function getCurrentTimeString() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
         function appendGuideMessageWithTyping(text, onComplete = null) {
             const feed = document.getElementById('chat-feed');
             const containerId = 'typing-' + Date.now();
+            const timeStr = getCurrentTimeString();
             
-            const div = document.createElement('div');
-            div.className = "flex items-start space-x-2 my-2";
-            div.innerHTML = `
-                <div class="w-8 h-8 rounded-full overflow-hidden border border-mossGreen shrink-0 shadow bg-tacticalOlive">
-                    <img src="https://th.bing.com/th/id/OIP.PYs6HZXYcjaQmfRH_QWLmQHaHa?w=202&h=202&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" alt="Guide Kestrel" class="w-full h-full object-cover">
-                </div>
-                <div class="flex flex-col space-y-1">
-                    <span class="text-[10px] text-sageHighlight font-semibold ml-1">Guide Kestrel</span>
-                    <div id="${containerId}" class="bg-tacticalOlive border border-mossGreen/50 p-3 rounded-2xl rounded-tl-sm text-xs text-white max-w-[80%] shadow flex items-center space-x-1.5 h-8">
+            // Check if last message was from Guide Kestrel to group them
+            const lastMessageGroup = feed.lastElementChild;
+            const isGroupable = lastMessageGroup && lastMessageGroup.classList.contains('guide-group');
+
+            if (isGroupable) {
+                const bubbleContainer = lastMessageGroup.querySelector('.guide-bubbles');
+                const newBubbleId = 'bubble-' + Date.now();
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = `
+                    <div id="${newBubbleId}" class="bg-tacticalOlive border border-mossGreen/50 p-3 rounded-2xl text-xs text-white max-w-[80%] shadow flex items-center space-x-1.5 h-8 mt-1.5">
                         <div class="w-2 h-2 bg-sageHighlight rounded-full dot-1"></div>
                         <div class="w-2 h-2 bg-sageHighlight rounded-full dot-2"></div>
                         <div class="w-2 h-2 bg-sageHighlight rounded-full dot-3"></div>
                     </div>
+                `;
+                bubbleContainer.appendChild(tempDiv.firstElementChild);
+                scrollToBottom();
+
+                setTimeout(() => {
+                    const bubble = document.getElementById(newBubbleId);
+                    if (bubble) {
+                        bubble.classList.remove('h-8', 'items-center', 'space-x-1.5', 'mt-1.5');
+                        bubble.classList.add('mt-1.5', 'relative', 'pb-4');
+                        bubble.innerHTML = `${text}<span class="absolute bottom-1 right-2 text-[9px] text-sageHighlight/70">${timeStr}</span>`;
+                    }
+                    scrollToBottom();
+                    if (onComplete) onComplete();
+                }, 1200);
+
+            } else {
+                const div = document.createElement('div');
+                div.className = "flex items-start space-x-2 my-2 guide-group";
+                div.innerHTML = `
+                    <div class="w-8 h-8 rounded-full overflow-hidden border border-mossGreen shrink-0 shadow bg-tacticalOlive">
+                        <img src="https://th.bing.com/th/id/OIP.PYs6HZXYcjaQmfRH_QWLmQHaHa?w=202&h=202&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" alt="Guide Kestrel" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex flex-col space-y-1 w-full guide-bubbles">
+                        <span class="text-[10px] text-sageHighlight font-semibold ml-1">Guide Kestrel</span>
+                        <div id="${containerId}" class="bg-tacticalOlive border border-mossGreen/50 p-3 rounded-2xl rounded-tl-sm text-xs text-white max-w-[80%] shadow flex items-center space-x-1.5 h-8">
+                            <div class="w-2 h-2 bg-sageHighlight rounded-full dot-1"></div>
+                            <div class="w-2 h-2 bg-sageHighlight rounded-full dot-2"></div>
+                            <div class="w-2 h-2 bg-sageHighlight rounded-full dot-3"></div>
+                        </div>
+                    </div>
+                `;
+                feed.appendChild(div);
+                scrollToBottom();
+
+                setTimeout(() => {
+                    const bubble = document.getElementById(containerId);
+                    if (bubble) {
+                        bubble.classList.remove('h-8', 'items-center', 'space-x-1.5');
+                        bubble.classList.add('relative', 'pb-4');
+                        bubble.innerHTML = `${text}<span class="absolute bottom-1 right-2 text-[9px] text-sageHighlight/70">${timeStr}</span>`;
+                    }
+                    scrollToBottom();
+                    if (onComplete) onComplete();
+                }, 1200);
+            }
+        }
+
+        function appendSystemStatusMessage(text) {
+            const feed = document.getElementById('chat-feed');
+            const div = document.createElement('div');
+            const timeStr = getCurrentTimeString();
+            div.className = "my-3 text-center";
+            div.innerHTML = `
+                <div class="inline-block bg-tacticalOlive/70 border border-mossGreen/60 text-sageHighlight text-[11px] font-semibold px-4 py-2 rounded-xl shadow tracking-wide w-full max-w-xs relative pb-4">
+                    ${text}
+                    <span class="absolute bottom-1 right-3 text-[9px] text-sageHighlight/60">${timeStr}</span>
                 </div>
             `;
             feed.appendChild(div);
             scrollToBottom();
-
-            // Simulate typing duration then reveal text
-            setTimeout(() => {
-                const bubble = document.getElementById(containerId);
-                if (bubble) {
-                    bubble.classList.remove('h-8', 'items-center', 'space-x-1.5');
-                    bubble.innerHTML = text;
-                }
-                scrollToBottom();
-                if (onComplete) onComplete();
-            }, 1200);
         }
 
         function appendTeamMessage(text) {
             const feed = document.getElementById('chat-feed');
             const div = document.createElement('div');
+            const timeStr = getCurrentTimeString();
             div.className = "flex justify-end my-2";
             div.innerHTML = `
-                <div class="bg-sageHighlight text-gray-900 p-3 rounded-2xl rounded-tr-sm text-xs max-w-[80%] shadow font-medium">
+                <div class="bg-sageHighlight text-gray-900 p-3 rounded-2xl rounded-tr-sm text-xs max-w-[80%] shadow font-medium relative pb-4">
                     ${text}
+                    <span class="absolute bottom-1 right-2 text-[9px] text-gray-500">${timeStr}</span>
                 </div>
             `;
             feed.appendChild(div);
@@ -800,7 +864,13 @@
                 return;
             }
 
+            let firstQueuedTeam = null;
+
             teams.forEach(t => {
+                if (t.status === 'Queued' && !firstQueuedTeam) {
+                    firstQueuedTeam = t.teamName;
+                }
+
                 const tr = document.createElement('tr');
                 let statusBadge = '';
                 if (t.status === 'Setup') statusBadge = '<span class="bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs font-semibold">Setup</span>';
@@ -808,10 +878,7 @@
                 else if (t.status === 'Queued') statusBadge = '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs font-semibold animate-pulse">Queued</span>';
                 else if (t.status === 'Started') statusBadge = '<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Started</span>';
 
-                let actionBtn = '';
-                if (t.status === 'Queued') {
-                    actionBtn = `<button onclick="openRouteModal('${t.teamName.replace(/'/g, "\\'")}')" class="bg-mossGreen text-white px-3 py-1 rounded-lg text-xs font-semibold shadow hover:bg-mossGreen/90">Assign Route</button>`;
-                }
+                let actionBtn = `<button onclick="openRouteModal('${t.teamName.replace(/'/g, "\\'")}')" class="bg-mossGreen text-white px-3 py-1 rounded-lg text-xs font-semibold shadow hover:bg-mossGreen/90">Assign Route</button>`;
 
                 tr.innerHTML = `
                     <td class="p-4 font-semibold text-gray-900">${t.teamName}</td>
@@ -826,11 +893,19 @@
                 `;
                 tbody.appendChild(tr);
             });
+
+            // Automatically open big popup for newly queued teams
+            if (firstQueuedTeam && firstQueuedTeam !== lastQueuedTeamModalShown) {
+                lastQueuedTeamModalShown = firstQueuedTeam;
+                openRouteModal(firstQueuedTeam);
+            } else if (!firstQueuedTeam) {
+                lastQueuedTeamModalShown = null;
+            }
         }
 
         function openRouteModal(teamName) {
-            document.getElementById('modal-title').innerText = `${teamName} is ready to begin`;
-            document.getElementById('modal-desc').innerText = `Please select their route assignment:`;
+            document.getElementById('modal-title').innerText = `${teamName} is ready to begin!`;
+            document.getElementById('modal-desc').innerText = `Please select their route assignment immediately:`;
             
             const btnContainer = document.getElementById('modal-buttons');
             btnContainer.innerHTML = '';
