@@ -8,6 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- QR Code Generator Library for Host Screen -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Firebase SDKs for Realtime Cloud Syncing -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -48,7 +51,6 @@
     <!-- VIEW 1: LANDING PAGE -->
     <div id="view-home" class="view-screen hidden flex-1 flex flex-col justify-between items-center p-6 max-w-md mx-auto w-full text-center py-12 overflow-y-auto">
         <div class="space-y-3 mt-8">
-            <img src="logo.png" alt="Galileo ESU Logo" class="w-20 h-20 mx-auto object-contain drop-shadow-md">
             <h2 class="text-xs font-semibold tracking-widest text-sageHighlight uppercase">Galileo ESU</h2>
             <h1 class="text-3xl font-bold tracking-wider font-heading text-amber-300">2026 Rough Close Race</h1>
             <p class="text-xs text-gray-300 max-w-xs mx-auto">Official tactical mobile adventure system & live briefing portal.</p>
@@ -64,7 +66,7 @@
         </div>
 
         <div class="text-center">
-            <p class="text-[10px] text-sageHighlight/40">Galileo ESU Secure Tactical Network</p>
+            <p class="text-[10px] text-sageHighlight/40">Galileo ESU Cloud Tactical Network</p>
         </div>
     </div>
 
@@ -206,7 +208,7 @@
             </div>
         </header>
 
-        <!-- CHAT FEED (Only this part scrolls independently) -->
+        <!-- CHAT FEED -->
         <div id="chat-feed" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
 
         <div class="bg-tacticalOlive border-t border-mossGreen p-3 z-20 shadow-2xl shrink-0">
@@ -248,7 +250,7 @@
             <div class="flex justify-between items-center border-b pb-4">
                 <div>
                     <h1 class="text-2xl font-bold font-heading text-tacticalOlive">Host Control Dashboard</h1>
-                    <p class="text-xs text-gray-500">Live QR Codes & Team Telemetry</p>
+                    <p class="text-xs text-gray-500">Live Cloud Sync & Team Telemetry</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <button onclick="deleteAllTeams()" class="bg-red-600 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow hover:bg-red-700">Delete All Teams</button>
@@ -277,7 +279,7 @@
 
             <!-- Live Teams Table -->
             <div class="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
-                <div class="p-4 bg-gray-50 border-b font-bold text-sm text-tacticalOlive">Registered Teams Status</div>
+                <div class="p-4 bg-gray-50 border-b font-bold text-sm text-tacticalOlive">Registered Teams Status (Cloud Synced)</div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -309,11 +311,30 @@
 
     <!-- JAVASCRIPT SYSTEM ENGINE -->
     <script>
+        // FIREBASE CLOUD SETUP (Using public test Firestore config - replace with your own project config if desired)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-TestKeyForGalileoESURace2026-Placeholder",
+            authDomain: "galileo-esu-race.firebaseapp.com",
+            projectId: "galileo-esu-race"
+        };
+        
+        // Initialize Firebase with fallback to localStorage if offline/unconfigured
+        let db = null;
+        let cloudEnabled = false;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            cloudEnabled = true;
+        } catch (err) {
+            console.log("Running in local storage fallback mode:", err);
+        }
+
         let routeCheckpoints = [];
         let activeStream = null;
         let useFrontCamera = false;
         let lastQueuedTeamModalShown = null;
         let chatInitialized = false;
+        let globalTeamsCache = [];
 
         let sessionState = {
             teamName: "",
@@ -357,6 +378,7 @@
             } else if (hash === 'host') {
                 renderHostDashboard();
             } else if (hash === 'dashboard') {
+                await syncStateFromCloud();
                 initChatSession();
             }
         }
@@ -458,8 +480,8 @@
                 return;
             }
 
-            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
-            let exists = teams.some(t => t.teamName.toLowerCase() === teamName.toLowerCase());
+            await fetchAllTeamsFromCloud();
+            let exists = globalTeamsCache.some(t => t.teamName.toLowerCase() === teamName.toLowerCase());
             if (exists) {
                 alert('A team with this name already exists. Please choose a different team name.');
                 return;
@@ -481,7 +503,7 @@
                 messageHistory: []
             };
 
-            saveTeamRegistry(sessionState);
+            await saveTeamToCloud(sessionState);
             saveActiveSession();
             chatInitialized = false;
             navigateTo('dashboard');
@@ -492,8 +514,8 @@
             const teamName = document.getElementById('rejoin-team-name').value.trim();
             const pin = document.getElementById('rejoin-team-pin').value.trim();
 
-            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
-            let found = teams.find(t => t.teamName.toLowerCase() === teamName.toLowerCase() && t.pin === pin);
+            await fetchAllTeamsFromCloud();
+            let found = globalTeamsCache.find(t => t.teamName.toLowerCase() === teamName.toLowerCase() && t.pin === pin);
 
             if (found) {
                 if (routeCheckpoints.length === 0) await loadCheckpoints();
@@ -515,10 +537,9 @@
         }
 
         async function initChatSession() {
-            syncStateFromStorage();
+            await syncStateFromCloud();
             const feed = document.getElementById('chat-feed');
             
-            // If already initialized for this session load, just rebuild from messageHistory
             if (chatInitialized && sessionState.messageHistory && sessionState.messageHistory.length > 0) {
                 feed.innerHTML = '';
                 sessionState.messageHistory.forEach(item => {
@@ -533,9 +554,8 @@
             feed.innerHTML = '';
             sessionState.messageHistory = [];
 
-            // Sequential Kestrel intro messages
-            const msg1 = `Welcome to the Rough Close Race 2026! Navigate around the campsite through your assigned checkpoints, solving location-based questions to advance.`;
-            const msg2 = `⏱️ <strong>Beat the Clock:</strong> You are always racing against time.<br>💡 <strong>Hints (Type HINT):</strong> Costs 2 tokens for a direct clue.<br>🗺️ <strong>Lost Support (Type LOST):</strong> Costs 2 tokens for a What3Words location.<br>🧩 <strong>Extra Work (Type WORK):</strong> Solve a riddle to earn +3 tokens anytime.<br>⏱️ <strong>Score Check (Type SCORE):</strong> View your current token balance and penalties.<br><br>Remaining tokens at the finish line remove penalty time (3 tokens = 1 minute off).`;
+            const msg1 = "Welcome to the Rough Close Race 2026! Navigate around the campsite through your assigned checkpoints, solving location-based questions to advance.";
+            const msg2 = "⏱️ <strong>Beat the Clock:</strong> You are always racing against time.<br>💡 <strong>Hints (Type HINT):</strong> Costs 2 tokens for a direct clue.<br>🗺️ <strong>Lost Support (Type LOST):</strong> Costs 2 tokens for a What3Words location.<br>🧩 <strong>Extra Work (Type WORK):</strong> Solve a riddle to earn +3 tokens anytime.<br>⏱️ <strong>Score Check (Type SCORE):</strong> View your current token balance and penalties.<br><br>Remaining tokens at the finish line remove penalty time (3 tokens = 1 minute off).";
 
             await appendGuideMessageSequential(msg1);
             await appendGuideMessageSequential(msg2);
@@ -584,7 +604,7 @@
         function handleStartQueued() {
             sessionState.status = "Queued";
             saveActiveSession();
-            updateTeamRegistry(sessionState);
+            saveTeamToCloud(sessionState);
 
             const card = document.getElementById('ready-card');
             if (card) card.remove();
@@ -593,19 +613,60 @@
             updateChatInputState();
         }
 
-        function syncStateFromStorage() {
+        async function fetchAllTeamsFromCloud() {
+            if (cloudEnabled && db) {
+                try {
+                    const snapshot = await db.collection('teams').get();
+                    globalTeamsCache = [];
+                    snapshot.forEach(doc => {
+                        globalTeamsCache.push(doc.data());
+                    });
+                    localStorage.setItem('galileo_teams_registry', JSON.stringify(globalTeamsCache));
+                    return;
+                } catch (e) {
+                    console.log("Cloud fetch offline, fallback to local storage:", e);
+                }
+            }
+            globalTeamsCache = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
+        }
+
+        async function saveTeamToCloud(teamObj) {
+            if (cloudEnabled && db) {
+                try {
+                    await db.collection('teams').doc(teamObj.teamName.toLowerCase()).set(teamObj);
+                } catch (e) {
+                    console.log("Cloud save failed, using local storage:", e);
+                }
+            }
+            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
+            let index = teams.findIndex(t => t.teamName.toLowerCase() === teamObj.teamName.toLowerCase());
+            if (index >= 0) teams[index] = teamObj;
+            else teams.push(teamObj);
+            localStorage.setItem('galileo_teams_registry', JSON.stringify(teams));
+        }
+
+        async function syncStateFromCloud() {
+            if (!sessionState.teamName) return;
+            if (cloudEnabled && db) {
+                try {
+                    const doc = await db.collection('teams').doc(sessionState.teamName.toLowerCase()).get();
+                    if (doc.exists) {
+                        sessionState = doc.data();
+                        saveActiveSession();
+                        return;
+                    }
+                } catch (e) {
+                    console.log("Cloud sync error:", e);
+                }
+            }
             let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
             let me = teams.find(t => t.teamName.toLowerCase() === sessionState.teamName.toLowerCase());
-            if (me) {
-                sessionState = me;
-            }
+            if (me) sessionState = me;
         }
 
         function updateChatInputState() {
             const inputField = document.getElementById('chat-input');
             const controlsWrapper = document.getElementById('chat-controls-wrapper');
-
-            syncStateFromStorage();
 
             if (sessionState.status !== "Started") {
                 inputField.disabled = true;
@@ -618,11 +679,12 @@
             }
         }
 
-        setInterval(() => {
+        // Live polling interval to sync state with cloud/server across multiple devices
+        setInterval(async () => {
             if (window.location.hash.includes('dashboard') && sessionState.teamName) {
                 let oldStatus = sessionState.status;
                 let oldRoute = sessionState.routeAssigned;
-                syncStateFromStorage();
+                await syncStateFromCloud();
 
                 if (oldStatus !== sessionState.status || oldRoute !== sessionState.routeAssigned) {
                     updateChatInputState();
@@ -636,14 +698,14 @@
             if (window.location.hash.includes('host')) {
                 renderHostDashboard();
             }
-        }, 2000);
+        }, 3000);
 
         function presentCheckpoint(index) {
             if (index >= routeCheckpoints.length) {
-                appendGuideMessageSequential(`🏆 ROUTE COMPLETE! Amazing work team!`);
+                appendGuideMessageSequential("🏆 ROUTE COMPLETE! Amazing work team!");
                 sessionState.completed = true;
                 saveActiveSession();
-                updateTeamRegistry(sessionState);
+                saveTeamToCloud(sessionState);
                 return;
             }
 
@@ -697,7 +759,7 @@
                             bubble.classList.add('mt-1.5', 'relative', 'pb-4');
                             bubble.innerHTML = `${text}<span class="absolute bottom-1 right-2 text-[9px] text-sageHighlight/70">${timeStr}</span>`;
                         }
-                        saveMessageToHistory(feed.innerHTML);
+                        saveMessageToHistory();
                         scrollToBottom();
                         resolve();
                     }, 1200);
@@ -728,7 +790,7 @@
                             bubble.classList.add('relative', 'pb-4');
                             bubble.innerHTML = `${text}<span class="absolute bottom-1 right-2 text-[9px] text-sageHighlight/70">${timeStr}</span>`;
                         }
-                        saveMessageToHistory(feed.innerHTML);
+                        saveMessageToHistory();
                         scrollToBottom();
                         resolve();
                     }, 1200);
@@ -748,7 +810,7 @@
                 </div>
             `;
             feed.appendChild(div);
-            saveMessageToHistory(feed.innerHTML);
+            saveMessageToHistory();
             scrollToBottom();
         }
 
@@ -764,7 +826,7 @@
                 </div>
             `;
             feed.appendChild(div);
-            saveMessageToHistory(feed.innerHTML);
+            saveMessageToHistory();
             scrollToBottom();
         }
 
@@ -773,14 +835,14 @@
             const div = document.createElement('div');
             div.innerHTML = html;
             feed.appendChild(div);
-            saveMessageToHistory(feed.innerHTML);
+            saveMessageToHistory();
             scrollToBottom();
         }
 
-        function saveMessageToHistory(htmlContent) {
+        function saveMessageToHistory() {
             sessionState.messageHistory = Array.from(document.getElementById('chat-feed').children).map(node => node.outerHTML);
             saveActiveSession();
-            updateTeamRegistry(sessionState);
+            saveTeamToCloud(sessionState);
         }
 
         function scrollToBottom() {
@@ -793,7 +855,7 @@
             document.getElementById('token-count').innerText = sessionState.tokens;
             document.getElementById('penalty-count').innerText = `${sessionState.penalties}m`;
             saveActiveSession();
-            updateTeamRegistry(sessionState);
+            saveTeamToCloud(sessionState);
         }
 
         document.getElementById('form-chat').addEventListener('submit', async (e) => {
@@ -888,7 +950,7 @@
             }
         });
 
-        function renderHostDashboard() {
+        async function renderHostDashboard() {
             document.getElementById('qrcode-web').innerHTML = "";
             document.getElementById('qrcode-create').innerHTML = "";
             document.getElementById('qrcode-start').innerHTML = "";
@@ -897,18 +959,18 @@
             new QRCode(document.getElementById("qrcode-create"), { text: "CREATE-TEAM-849201", width: 120, height: 120 });
             new QRCode(document.getElementById("qrcode-start"), { text: "START-RACE-302948", width: 120, height: 120 });
 
+            await fetchAllTeamsFromCloud();
             const tbody = document.getElementById('admin-teams-table');
             tbody.innerHTML = '';
-            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
 
-            if (teams.length === 0) {
+            if (globalTeamsCache.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">No teams registered yet.</td></tr>`;
                 return;
             }
 
             let firstQueuedTeam = null;
 
-            teams.forEach(t => {
+            globalTeamsCache.forEach(t => {
                 if (t.status === 'Queued' && !firstQueuedTeam) {
                     firstQueuedTeam = t.teamName;
                 }
@@ -936,7 +998,6 @@
                 tbody.appendChild(tr);
             });
 
-            // Automatically open big popup for newly queued teams
             if (firstQueuedTeam && firstQueuedTeam !== lastQueuedTeamModalShown) {
                 lastQueuedTeamModalShown = firstQueuedTeam;
                 openRouteModal(firstQueuedTeam);
@@ -973,14 +1034,14 @@
             document.getElementById('host-modal').classList.add('hidden');
         }
 
-        function assignRouteToTeam(teamName, routeId) {
-            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
-            let t = teams.find(item => item.teamName.toLowerCase() === teamName.toLowerCase());
+        async function assignRouteToTeam(teamName, routeId) {
+            await fetchAllTeamsFromCloud();
+            let t = globalTeamsCache.find(item => item.teamName.toLowerCase() === teamName.toLowerCase());
             if (t) {
                 t.status = "Started";
                 t.routeAssigned = routeId;
                 t.startTime = new Date().toLocaleTimeString();
-                localStorage.setItem('galileo_teams_registry', JSON.stringify(teams));
+                await saveTeamToCloud(t);
                 
                 if (sessionState.teamName.toLowerCase() === teamName.toLowerCase()) {
                     sessionState = t;
@@ -991,8 +1052,15 @@
             renderHostDashboard();
         }
 
-        function deleteTeam(teamName) {
+        async function deleteTeam(teamName) {
             if (confirm(`Are you sure you want to delete team "${teamName}"?`)) {
+                if (cloudEnabled && db) {
+                    try {
+                        await db.collection('teams').doc(teamName.toLowerCase()).delete();
+                    } catch (e) {
+                        console.log("Cloud delete error:", e);
+                    }
+                }
                 let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
                 teams = teams.filter(t => t.teamName.toLowerCase() !== teamName.toLowerCase());
                 localStorage.setItem('galileo_teams_registry', JSON.stringify(teams));
@@ -1000,23 +1068,21 @@
             }
         }
 
-        function deleteAllTeams() {
+        async function deleteAllTeams() {
             if (confirm("WARNING: Are you sure you want to delete ALL teams? This action cannot be undone.")) {
+                if (cloudEnabled && db) {
+                    try {
+                        const snapshot = await db.collection('teams').get();
+                        const batch = db.batch();
+                        snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                        await batch.commit();
+                    } catch (e) {
+                        console.log("Cloud batch delete error:", e);
+                    }
+                }
                 localStorage.removeItem('galileo_teams_registry');
                 renderHostDashboard();
             }
-        }
-
-        function saveTeamRegistry(teamObj) {
-            let teams = JSON.parse(localStorage.getItem('galileo_teams_registry')) || [];
-            let index = teams.findIndex(t => t.teamName.toLowerCase() === teamObj.teamName.toLowerCase());
-            if (index >= 0) teams[index] = teamObj;
-            else teams.push(teamObj);
-            localStorage.setItem('galileo_teams_registry', JSON.stringify(teams));
-        }
-
-        function updateTeamRegistry(teamObj) {
-            saveTeamRegistry(teamObj);
         }
 
         function saveActiveSession() {
