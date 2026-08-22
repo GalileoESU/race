@@ -191,9 +191,12 @@
                     <p id="chat-checkpoint-index" class="text-[10px] text-sageHighlight">Checkpoint 1</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-3 bg-camoDark/60 px-3 py-1.5 rounded-full border border-mossGreen/50">
-                <span class="text-xs">🪙 <span id="token-count" class="font-bold">10</span></span>
-                <span class="text-xs text-amberFlare">⏱️ <span id="penalty-count">0m</span></span>
+            <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1.5 bg-camoDark/60 px-2.5 py-1.5 rounded-full border border-mossGreen/50">
+                    <span class="text-xs">🪙 <span id="token-count" class="font-bold">10</span></span>
+                    <span class="text-xs text-amberFlare">⏱️ <span id="penalty-count">0m</span></span>
+                </div>
+                <button onclick="teamLogout()" class="bg-red-900/60 hover:bg-red-900 text-sageHighlight text-[10px] font-semibold px-2.5 py-1.5 rounded-lg border border-red-700/50 transition">Logout</button>
             </div>
         </header>
 
@@ -474,6 +477,13 @@
                 alert('Team not found or incorrect PIN.');
             }
         });
+
+        function teamLogout() {
+            if (confirm("Are you sure you want to log out of your team session? You can rejoin anytime using your team name and PIN.")) {
+                localStorage.removeItem('galileo_active_session');
+                navigateTo('login');
+            }
+        }
 
         function initChatSession() {
             const feed = document.getElementById('chat-feed');
